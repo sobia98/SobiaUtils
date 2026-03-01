@@ -6,5 +6,10 @@ namespace Sobia.Utils
         {
             UnityEngine.Debug.Log($"[Prototype] {message}");
         }
+
+        public static void PrintDumb()
+        {
+            UnityEngine.Debug.Log($"I am Dumb!");
+        }
     }
 }

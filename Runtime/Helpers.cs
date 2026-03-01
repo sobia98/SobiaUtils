@@ -1,15 +1,17 @@
 namespace Sobia.Utils
 {
-    public static class PrototypeUtils
+    public static class SobiaUtils
     {
-        public static void QuickLog(string message)
+        /// <summary>
+        /// Checks if a Unity object is null and logs a formatted error.
+        /// Returns true if valid, false if null.
+        /// obj => which refernce, fieldName => nameof(obj), holder => gameboject
+        /// </summary>
+        public static void IsAssigned(Object obj, string fieldName, GameObject holder)
         {
-            UnityEngine.Debug.Log($"[Prototype] {message}");
-        }
-
-        public static void PrintDumb()
-        {
-            UnityEngine.Debug.Log($"I am Dumb!");
+            if (obj == null)
+            {
+                Debug.LogError($"<b>[{holder.name}]</b> <color=red>Missing Reference:</color> '{fieldName}' is not assigned!", holder);
+            }
         }
     }
-}

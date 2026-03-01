@@ -1,0 +1,10 @@
+{
+  "name": "com.sobia.sharedtools",
+  "version": "1.0.0",
+  "displayName": "Sobia Utils",
+  "description": "General functions for fast prototyping.",
+  "unity": "6000.3",
+  "author": {
+    "name": "Sobia Entertainment"
+  }
+}

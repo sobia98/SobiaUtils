@@ -1,3 +1,6 @@
+using UnityEngine;
+using TMPro;
+
 namespace Sobia.Utils
 {
     public static class SobiaDiagnositcs
@@ -40,3 +43,4 @@ namespace Sobia.Utils
             }
         }
     }
+}

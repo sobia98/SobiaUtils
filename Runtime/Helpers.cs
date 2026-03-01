@@ -1,3 +1,4 @@
+using UnityEngine;
 namespace Sobia.Utils
 {
     public static class SobiaUtils

@@ -10,6 +10,7 @@ namespace Sobia.Utils
 
         [Header("Settings")]
         [SerializeField] private float UpdateInterval = 0.5f;
+
         public bool IsVisible = true;
 
         private float UpdateDeltaTime = 0.0f;

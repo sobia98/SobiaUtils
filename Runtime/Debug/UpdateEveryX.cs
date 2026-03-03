@@ -22,7 +22,7 @@ namespace Sobia.Utils
 
             if (Provider != null && Timer >= IntervalX)
             {
-                Debug.Log("Log: " + Provider.GetCurrentState());
+                Provider.LogEveryX();
                 Timer = 0f;
             }
         }

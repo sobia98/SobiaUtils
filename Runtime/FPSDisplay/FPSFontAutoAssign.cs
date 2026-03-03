@@ -1,18 +1,21 @@
 using UnityEngine;
 using TMPro;
 
-[ExecuteAlways]
-public class FPSFontAutoAssign : MonoBehaviour
+namespace Sobia.Utils
 {
-    private TextMeshProUGUI TextMeshPro;
-
-    private void Awake()
+    [ExecuteAlways]
+    public class FPSFontAutoAssign : MonoBehaviour
     {
-        TextMeshPro = GetComponent<TextMeshProUGUI>();
-        TMP_FontAsset defaultFont = TMP_Settings.defaultFontAsset;
-        if (defaultFont != null)
+        private TextMeshProUGUI TextMeshPro;
+
+        private void Awake()
         {
-            TextMeshPro.font = defaultFont;
+            TextMeshPro = GetComponent<TextMeshProUGUI>();
+            TMP_FontAsset defaultFont = TMP_Settings.defaultFontAsset;
+            if (defaultFont != null)
+            {
+                TextMeshPro.font = defaultFont;
+            }
         }
     }
 }

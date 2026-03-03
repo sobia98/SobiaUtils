@@ -30,7 +30,7 @@ namespace Sobia.Utils
         /// be animated and automatically removed after a certain duration.</remarks>
         /// <param name="target">The GameObject above which the popup text will be displayed. Must not be null.</param>
         /// <param name="text">The text content to be displayed in the popup. This string will be rendered as the popup's message.</param>
-        private void ShowPopupText(GameObject target, string text)
+        public void ShowPopupText(GameObject target, string text)
         {
             if (target == null) return;
 

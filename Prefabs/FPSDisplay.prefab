@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1120636441934504818}
   - component: {fileID: 3979212978572356396}
   - component: {fileID: 7845847681051030712}
+  - component: {fileID: -3917544850842163446}
   m_Layer: 5
   m_Name: FPSDisplay
   m_TagString: Untagged
@@ -153,3 +154,15 @@ MonoBehaviour:
   FPSText: {fileID: 3979212978572356396}
   UpdateInterval: 0.5
   IsVisible: 1
+--- !u!114 &-3917544850842163446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4543500564756851273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f99ad11367cd44a4586d0426814966e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Sobia.Utils::FPSFontAutoAssign

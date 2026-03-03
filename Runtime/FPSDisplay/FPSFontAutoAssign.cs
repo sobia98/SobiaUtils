@@ -4,13 +4,11 @@ using TMPro;
 [ExecuteAlways]
 public class FPSFontAutoAssign : MonoBehaviour
 {
-    private TextMeshPro TextMeshPro;
+    private TextMeshProUGUI TextMeshPro;
 
     private void Awake()
     {
-        TextMeshPro = GetComponent<TextMeshPro>();
-        Debug.Log("Test");
-
+        TextMeshPro = GetComponent<TextMeshProUGUI>();
         TMP_FontAsset defaultFont = TMP_Settings.defaultFontAsset;
         if (defaultFont != null)
         {

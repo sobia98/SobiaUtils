@@ -2,9 +2,13 @@
     "name": "Sobia.Utils",
     "rootNamespace": "",
     "references": [
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:d2720e605cf5d9a488ad272ff7ec5fa4",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
-    "_GUIMapping": "1 -> TextMeshPro",
+    "dependencies": {
+    "com.unity.inputsystem": "1.18.0"
+},
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

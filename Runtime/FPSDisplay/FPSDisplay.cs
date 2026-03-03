@@ -25,6 +25,8 @@ namespace Sobia.Utils
                 return;
             }
             FPSText.gameObject.SetActive(IsVisible);
+
+            Debug.Log(TMP_Settings.defaultFontAsset);
         }
 
         private void Update()

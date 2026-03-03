@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3979212978572356396}
   - component: {fileID: 7845847681051030712}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: FPSDisplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

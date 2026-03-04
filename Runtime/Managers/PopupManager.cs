@@ -18,8 +18,15 @@ namespace Sobia.Utils
 
         private void Awake()
         {
-            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             Instance = this;
+
+            SobiaUtils.IsAssigned(PopupParent, nameof(PopupParent), gameObject);
         }
 
         /// <summary>

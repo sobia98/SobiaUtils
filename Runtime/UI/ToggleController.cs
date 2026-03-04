@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace Sobia.Utils
 {
     public class ToggleController : MonoBehaviour
@@ -11,6 +12,11 @@ namespace Sobia.Utils
 
         [SerializeField] private TextMeshProUGUI FPSText;
         [SerializeField] private FPSDisplay FPSDisplay;
+
+        private void Awake()
+        {
+            CheckReferences();
+        }
 
         private void Start()
         {
@@ -36,6 +42,15 @@ namespace Sobia.Utils
             FPSDisplay.IsVisible = isOn;
             FPSText.gameObject.SetActive(isOn);
             SaveSettingsPlayerPrefs.SaveShowFps(isOn);
+        }
+
+        private void CheckReferences()
+        {
+            SobiaUtils.IsAssigned(VSyncToggle, nameof(VSyncToggle), gameObject);
+            SobiaUtils.IsAssigned(FullscreenToggle, nameof(FullscreenToggle), gameObject);
+            SobiaUtils.IsAssigned(ShowFPSToggle, nameof(ShowFPSToggle), gameObject);
+            SobiaUtils.IsAssigned(FPSText, nameof(FPSText), gameObject);
+            SobiaUtils.IsAssigned(FPSDisplay, nameof(FPSDisplay), gameObject);
         }
     }
 }

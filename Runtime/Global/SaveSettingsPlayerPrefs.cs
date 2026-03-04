@@ -73,5 +73,15 @@ namespace Sobia.Utils
         {
             return PlayerPrefs.GetInt("ShowFps", 1) == 1;
         }
+
+        public static void LoadUIVolume()
+        {
+            PlayerPrefs.GetFloat("UIVolume", 1.0f);
+        }
+
+        public static float SaveUIVolume(float volume)
+        {
+            return PlayerPrefs.GetFloat("UIVolume", 1.0f);
+        }
     }
 }

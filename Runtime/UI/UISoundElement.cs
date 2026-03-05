@@ -6,8 +6,8 @@ namespace Sobia.Utils
 {
     public class UISoundElement : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        public float UpdateEveryX = 0.15f;
-        private float LastPlayTime;
+        [SerializeField] private float UpdateEveryX = 0.15f;
+        private float LastPlayTime = 0f;
 
         private void Start()
         {

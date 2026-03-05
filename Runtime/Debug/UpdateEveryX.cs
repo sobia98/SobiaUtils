@@ -4,8 +4,8 @@ namespace Sobia.Utils
 {
     public class UpdateEveryX : MonoBehaviour
     {
-        public float IntervalX = 2f;
-        public GameObject TargetObject;
+        [SerializeField] private float IntervalX = 2f;
+        [SerializeField] private GameObject TargetObject;
 
         private float Timer = 0f;
         private ILoggableState Provider;

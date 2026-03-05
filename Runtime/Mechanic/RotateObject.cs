@@ -48,71 +48,66 @@ namespace Sobia.Utils
 
         public void Deactivate()
         {
-            if (IsActivated) return;
-
             if (ActiveRoutine != null)
             {
                 StopCoroutine(ActiveRoutine);
             }
-            if (RotationAxisDirection == AxisDirection.Plus) // just go the opposite
-            {
-                ActiveRoutine = StartCoroutine(RotateTo(RotationDegree * GlobalConstants.NEGATIVE_ONE));
-            }
-            else
-            {
-                ActiveRoutine = StartCoroutine(RotateTo(RotationDegree * GlobalConstants.NEGATIVE_ONE));
-            }
+
+            ActiveRoutine = StartCoroutine(RotateToOriginal());
             IsActivated = false;
-            ActiveRoutine = null;
         }
 
         private IEnumerator ActivationSequence()
         {
             IsActivated = true;
 
-            // 1. Initial Delay
             if (StartDelay > 0) yield return new WaitForSeconds(StartDelay);
 
             float rotationDegree;
             if (RotationAxisDirection == AxisDirection.Plus)
             {
-                rotationDegree = RotationDegree * GlobalConstants.POSITIVE_ONE;
+                rotationDegree = RotationDegree;
             }
             else
             {
-                rotationDegree = RotationDegree * GlobalConstants.NEGATIVE_ONE;
+                rotationDegree = -RotationDegree;
             }
 
-            //First rotation
             yield return StartCoroutine(RotateTo(rotationDegree));
 
-            //Activation Time
             yield return new WaitForSeconds(ObjectActivationTime);
 
-            IsActivated = false;
-            ActiveRoutine = null;
             Deactivate();
         }
 
-        private IEnumerator RotateTo(float targetDirection)
+        private IEnumerator RotateTo(float targetOffset)
         {
-            Vector3 targetEuler = Vector3.zero;
+            Vector3 targetEuler = originalRotation.eulerAngles;
             if (RotationAxis == Axis.X)
             {
-                targetEuler = new Vector3(targetDirection, transform.eulerAngles.y, transform.eulerAngles.z);
+                targetEuler.x += targetOffset;
             }
             else if (RotationAxis == Axis.Y)
             {
-                targetEuler = new Vector3(transform.eulerAngles.x, targetDirection, transform.eulerAngles.z);
+                targetEuler.y += targetOffset;
             }
             else if (RotationAxis == Axis.Z)
             {
-                targetEuler = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, targetDirection);
+                targetEuler.z += targetOffset;
             }
 
-            Quaternion startRotation = transform.rotation;
-            Quaternion endRotation = Quaternion.Euler(targetEuler);
+            yield return StartCoroutine(PerformRotation(Quaternion.Euler(targetEuler)));
+        }
 
+        private IEnumerator RotateToOriginal()
+        {
+            yield return StartCoroutine(PerformRotation(originalRotation));
+            ActiveRoutine = null;
+        }
+
+        private IEnumerator PerformRotation(Quaternion endRotation)
+        {
+            Quaternion startRotation = transform.rotation;
             float elapsed = 0;
             while (elapsed < RotationDuration)
             {
@@ -121,7 +116,6 @@ namespace Sobia.Utils
                 transform.rotation = Quaternion.Slerp(startRotation, endRotation, percent);
                 yield return null;
             }
-
             transform.rotation = endRotation;
         }
 

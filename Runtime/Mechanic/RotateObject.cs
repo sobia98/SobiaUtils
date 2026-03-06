@@ -19,6 +19,7 @@ namespace Sobia.Utils
         [SerializeField] private float ObjectActivationTime = 6.0f;
         [SerializeField] private float GizmosRadius = 4.0f;
         [SerializeField] private bool IsGizmos = false;
+        [SerializeField] private bool RotationBack = true;
 
         private Coroutine ActiveRoutine;
         private bool IsActivated = false;
@@ -27,11 +28,6 @@ namespace Sobia.Utils
         private void Awake()
         {
             originalRotation = transform.rotation;
-        }
-
-        private void Start()
-        {
-            Activate();
         }
 
         public void Activate()
@@ -77,7 +73,10 @@ namespace Sobia.Utils
 
             yield return new WaitForSeconds(ObjectActivationTime);
 
-            Deactivate();
+            if (RotationBack)
+            {
+                Deactivate();
+            }
         }
 
         private IEnumerator RotateTo(float targetOffset)

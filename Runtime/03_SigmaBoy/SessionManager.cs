@@ -89,11 +89,11 @@ namespace Sobia.SigmaboyProject
 
             if (heartsGained >= GameConstants.FINISHED_GAME_HEARTS)
             {
-                ButtonsManager.Instance.finishGameBtn.interactable = true;
+                //ButtonsManager.Instance.finishGameBtn.interactable = true;
             }
 
             DataManager.Instance.totalHearts += heartsGained;
-            ButtonsManager.Instance.CheckOnButtons();
+            //ButtonsManager.Instance.CheckOnButtons();
             UpdateTotalLovesUI();
 
             timerText.text = "Session Complete!";
@@ -255,7 +255,7 @@ namespace Sobia.SigmaboyProject
                 yield break;
             }
 
-            float radius = playerAura.auraTransform.localScale.x / 2f;
+            float radius = playerAura.AuraTransform.localScale.x / 2f;
             Vector3 playerPos = playerAura.transform.position;
 
             rejectingGirls.Clear();

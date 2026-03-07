@@ -88,6 +88,26 @@ namespace Sobia.Utils
             UISource.PlayOneShot(OnValueChangedClip);
         }
 
+        private IEnumerator FadeOutAndStop(AudioSource source, float duration)
+        {
+            float startVolume = source.volume;
+            float timeElapsed = 0f;
+
+            // Gradually reduce the volume
+            while (timeElapsed < duration)
+            {
+                timeElapsed += Time.deltaTime;
+                source.volume = Mathf.Lerp(startVolume, 0f, timeElapsed / duration);
+                yield return null;
+            }
+
+            source.volume = 0f;
+            source.Stop();
+
+            //start at startvolume next time
+            source.volume = startVolume;
+        }
+
         private void CheckReferences()
         {
             SobiaUtils.IsAssigned(SFXSource, nameof(SFXSource), gameObject);

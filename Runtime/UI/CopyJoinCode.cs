@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,6 +10,9 @@ namespace Sobia.Utils
     {
         [SerializeField] private Button CopyButton;
         [SerializeField] private TMP_Text CopyButtonText;
+
+        [DllImport("__Internal")]
+        private static extern void CopyTextToClipboard(string text);
 
         private void Awake()
         {
@@ -24,7 +28,13 @@ namespace Sobia.Utils
                 return;
             }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            CopyTextToClipboard(NetworkLobby.CurrentJoinCode);
+            Debug.Log("Copied to Browser Clipboard");
+#else
             GUIUtility.systemCopyBuffer = NetworkLobby.CurrentJoinCode;
+            Debug.Log("Copied to OS Clipboard");
+#endif
             StartCoroutine(CopyFeedbackRoutine());
         }
 

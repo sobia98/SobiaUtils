@@ -1,3 +1,4 @@
+using log4net.Util;
 using TMPro;
 using Unity.Netcode;
 using Unity.Services.Relay;
@@ -56,6 +57,17 @@ namespace Sobia.Utils
                         allocation.ConnectionData
                     );
 
+#if UNITY_WEBGL
+                    transport.UseWebSockets = true;
+                    string connectionType = "wss";
+#else
+                    transport.UseWebSockets = false;
+                    string connectionType = "dtls";
+#endif
+
+                    var relayServerData = AllocationUtils.ToRelayServerData(allocation, connectionType);
+                    transport.SetRelayServerData(relayServerData);
+
                     NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApprovalCallback;
                     byte[] payload = System.Text.Encoding.UTF8.GetBytes(LocalPlayerName);
                     NetworkManager.Singleton.NetworkConfig.ConnectionData = payload;
@@ -104,6 +116,18 @@ namespace Sobia.Utils
                     joinAllocation.HostConnectionData
                 );
 
+#if UNITY_WEBGL
+                transport.UseWebSockets = true;
+                string connectionType = "wss"; // Required for Browser
+#else
+                transport.UseWebSockets = false;
+                string connectionType = "dtls";
+#endif
+
+                // Use AllocationUtils to handle the JoinAllocation data correctly
+                var relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, connectionType);
+                transport.SetRelayServerData(relayServerData);
+
                 byte[] payload = System.Text.Encoding.UTF8.GetBytes(LocalPlayerName);
                 NetworkManager.Singleton.NetworkConfig.ConnectionData = payload;
                 NetworkManager.Singleton.StartClient();
@@ -147,6 +171,13 @@ namespace Sobia.Utils
 
         public void StartHostLocal()
         {
+            var transport = NetworkManager.Singleton.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
+
+#if UNITY_WEBGL
+            transport.UseWebSockets = true;
+#else
+            transport.UseWebSockets = false;
+#endif
             NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApprovalCallback;
             CurrentJoinCode = "Local";
             byte[] payload = System.Text.Encoding.UTF8.GetBytes(LocalPlayerName);
@@ -156,11 +187,18 @@ namespace Sobia.Utils
             gameObject.SetActive(false);
             SystemMessage.enabled = false;
             JoinCodeDisplay.text = $"Join Code: <color=#D3FF14>{CurrentJoinCode}</color>";
-            Debug.Log("Starting Local Host...");
+            Debug.Log($"Starting {(transport.UseWebSockets ? "WebSocket" : "UDP")} Local Host...");
         }
 
         public void StartClientLocal()
         {
+            var transport = NetworkManager.Singleton.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
+
+#if UNITY_WEBGL
+            transport.UseWebSockets = true;
+#else
+            transport.UseWebSockets = false;
+#endif
             CurrentJoinCode = "Local";
             byte[] payload = System.Text.Encoding.UTF8.GetBytes(LocalPlayerName);
             NetworkManager.Singleton.NetworkConfig.ConnectionData = payload;
@@ -169,7 +207,7 @@ namespace Sobia.Utils
             gameObject.SetActive(false);
             SystemMessage.enabled = false;
             JoinCodeDisplay.text = $"Join Code: <color=#D3FF14>{CurrentJoinCode}</color>";
-            Debug.Log("Joining Local Host...");
+            Debug.Log($"Starting {(transport.UseWebSockets ? "WebSocket" : "UDP")} Local Client...");
         }
     }
 }

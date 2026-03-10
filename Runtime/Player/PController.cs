@@ -127,6 +127,8 @@ namespace Sobia.Utils
             {
                 MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
+
+            SobiaUtils.IsAssigned(CinemachineCameraTarget, nameof(CinemachineCameraTarget), gameObject);
         }
 
         private void Start()

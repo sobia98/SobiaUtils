@@ -10,6 +10,8 @@ namespace Sobia.Utils
     public class PController : NetworkBehaviour
     {
         [Header("Player")]
+        [SerializeField] private Vector3 SpawnPosition = new Vector3(0f, 0f, 0f);
+
         [SerializeField] private float MoveSpeed = 2.0f;
 
         [SerializeField] private float SprintSpeed = 5.335f;
@@ -56,7 +58,7 @@ namespace Sobia.Utils
 
         [Header("Cinemachine")]
         [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
-        [SerializeField] private GameObject CinemachineCameraTarget;
+        [SerializeField] private GameObject CinemachineCamera;
 
         [Tooltip("How far in degrees can you move the camera up")]
         [SerializeField] private float TopClamp = 70.0f;
@@ -104,6 +106,7 @@ namespace Sobia.Utils
         private CharacterController Controller;
         private StarterAssetsInputs Input;
         private GameObject MainCamera;
+        private CharacterController CharacterController;
 
         private const float Threshold = 0.01f;
 
@@ -128,12 +131,14 @@ namespace Sobia.Utils
                 MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
 
-            SobiaUtils.IsAssigned(CinemachineCameraTarget, nameof(CinemachineCameraTarget), gameObject);
+            CharacterController = GetComponent<CharacterController>();
+
+            SobiaUtils.IsAssigned(CharacterController, nameof(CharacterController), gameObject);
         }
 
         private void Start()
         {
-            CinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
+            CinemachineTargetYaw = CinemachineCamera.transform.rotation.eulerAngles.y;
 
             HasAnimator = TryGetComponent(out Animator); // in case we use Animator
             Controller = GetComponent<CharacterController>();
@@ -337,7 +342,7 @@ namespace Sobia.Utils
             CinemachineTargetPitch = ClampAngle(CinemachineTargetPitch, BottomClamp, TopClamp);
 
             // Cinemachine will follow this target
-            CinemachineCameraTarget.transform.rotation = Quaternion.Euler(CinemachineTargetPitch + CameraAngleOverride,
+            CinemachineCamera.transform.rotation = Quaternion.Euler(CinemachineTargetPitch + CameraAngleOverride,
                 CinemachineTargetYaw, 0.0f);
         }
 
@@ -379,6 +384,8 @@ namespace Sobia.Utils
                 if (vcam != null)
                 {
                     vcam.Follow = transform;
+                    SobiaUtils.IsAssigned(CinemachineCamera, nameof(CinemachineCamera), gameObject);
+                    MoveToStartClient();
                 }
             }
 
@@ -399,6 +406,13 @@ namespace Sobia.Utils
         public override void OnNetworkDespawn()
         {
             base.OnNetworkDespawn();
+        }
+
+        public void MoveToStartClient()
+        {
+            CharacterController.enabled = false;
+            transform.position = SpawnPosition;
+            CharacterController.enabled = true;
         }
     }
 }

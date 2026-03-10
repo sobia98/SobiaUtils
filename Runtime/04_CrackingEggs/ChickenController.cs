@@ -9,7 +9,6 @@ namespace Sobia.CrackingEggs
     {
         [SerializeField] private float EveryXUpdateTimer = 3f;
         [SerializeField] private SpriteRenderer BloodSpriteRenderer;
-        [SerializeField] private float ChickenDeathFade = 2f;
         [SerializeField] private Transform BloodTransform;
         [SerializeField] private float DurationTimeToUI = 2f;
         [SerializeField] private float MoveToUIStrength = 1.5f;
@@ -147,7 +146,7 @@ namespace Sobia.CrackingEggs
             // Rewards
             var rewardValue = GetComponent<Egg>().EggTypeData.RewardValue;
             PlayerController.Instance.CollectEgg(rewardValue);
-            spriteRendererChicken.DOFade(0, ChickenDeathFade).OnComplete(() => Destroy(gameObject));
+            Destroy(gameObject);
         }
     }
 }

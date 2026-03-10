@@ -4,6 +4,7 @@ using Unity.Netcode;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Sobia.Utils
 {
@@ -17,6 +18,10 @@ namespace Sobia.Utils
         [SerializeField] private TMP_InputField JoinCodeInputField;
         [SerializeField] private TMP_Text JoinCodeDisplay;
         [SerializeField] private TMP_Text SystemMessage;
+        [SerializeField] private Button JoinLocalButton;
+        [SerializeField] private Button JoinOnlineButton;
+        [SerializeField] private Button HostLocalButton;
+        [SerializeField] private Button HostOnlineButton;
 
         public static string CurrentJoinCode { get; private set; } = "";
         private static string LocalPlayerName { get; set; } = "Player"; // Default name
@@ -32,7 +37,11 @@ namespace Sobia.Utils
         private void Start()
         {
             NameInputField.text = LocalPlayerName;
-            NameInputField.onValueChanged.AddListener(UpdateLocalPlayerName);
+            NameInputField.onValueChanged.AddListener((value) => UpdateLocalPlayerName(value));
+            JoinLocalButton.onClick.AddListener(() => JoinLocal());
+            JoinOnlineButton.onClick.AddListener(() => JoinOnline());
+            HostLocalButton.onClick.AddListener(() => HostLocal());
+            HostOnlineButton.onClick.AddListener(() => HostOnline());
         }
 
         private void UpdateLocalPlayerName(string newName)
@@ -40,7 +49,7 @@ namespace Sobia.Utils
             LocalPlayerName = newName;
         }
 
-        public async void StartHostRelay(int maxConnections = 6)
+        public async void HostOnline(int maxConnections = GlobalConstants.MAX_NUMBER_PLAYERS)
         {
             try
             {
@@ -92,7 +101,7 @@ namespace Sobia.Utils
             }
         }
 
-        public async void StartClientRelay()
+        public async void JoinOnline()
         {
             CurrentJoinCode = JoinCodeInputField.text.Trim();
 
@@ -169,7 +178,7 @@ namespace Sobia.Utils
             response.CreatePlayerObject = true;
         }
 
-        public void StartHostLocal()
+        public void HostLocal()
         {
             var transport = NetworkManager.Singleton.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
 
@@ -190,7 +199,7 @@ namespace Sobia.Utils
             Debug.Log($"Starting {(transport.UseWebSockets ? "WebSocket" : "UDP")} Local Host...");
         }
 
-        public void StartClientLocal()
+        public void JoinLocal()
         {
             var transport = NetworkManager.Singleton.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
 

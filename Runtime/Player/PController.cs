@@ -386,6 +386,7 @@ namespace Sobia.Utils
                     vcam.Follow = transform;
                     SobiaUtils.IsAssigned(CinemachineCamera, nameof(CinemachineCamera), gameObject);
                     MoveToStartClient();
+                    GetComponent<StarterAssetsInputs>().CursorLocked = true;
                 }
             }
 

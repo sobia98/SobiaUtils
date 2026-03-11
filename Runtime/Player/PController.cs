@@ -10,7 +10,7 @@ namespace Sobia.Utils
     public class PController : NetworkBehaviour
     {
         [Header("Player")]
-        [SerializeField] private Vector3 SpawnPosition = new Vector3(0f, 0f, 0f);
+        [SerializeField] private bool ThirdPerson = true;
 
         [SerializeField] private float MoveSpeed = 2.0f;
 
@@ -106,7 +106,6 @@ namespace Sobia.Utils
         private CharacterController Controller;
         private StarterAssetsInputs Input;
         private GameObject MainCamera;
-        private CharacterController CharacterController;
 
         private const float Threshold = 0.01f;
 
@@ -130,10 +129,6 @@ namespace Sobia.Utils
             {
                 MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
-
-            CharacterController = GetComponent<CharacterController>();
-
-            SobiaUtils.IsAssigned(CharacterController, nameof(CharacterController), gameObject);
         }
 
         private void Start()
@@ -371,49 +366,6 @@ namespace Sobia.Utils
             {
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(Controller.center), FootstepAudioVolume);
             }
-        }
-
-        public override void OnNetworkSpawn()
-        {
-            base.OnNetworkSpawn();
-
-            // The camera should only follow the player instance belonging to this client.
-            if (IsOwner)
-            {
-                CinemachineCamera vcam = FindFirstObjectByType<CinemachineCamera>();
-                if (vcam != null)
-                {
-                    vcam.Follow = transform;
-                    SobiaUtils.IsAssigned(CinemachineCamera, nameof(CinemachineCamera), gameObject);
-                    MoveToStartClient();
-                    GetComponent<StarterAssetsInputs>().CursorLocked = true;
-                }
-            }
-
-            if (!IsOwner)
-            {
-                if (TryGetComponent<StarterAssetsInputs>(out StarterAssetsInputs inputs))
-                {
-                    inputs.enabled = false;
-                }
-
-                if (TryGetComponent<PlayerInput>(out PlayerInput playerInput))
-                {
-                    playerInput.enabled = false;
-                }
-            }
-        }
-
-        public override void OnNetworkDespawn()
-        {
-            base.OnNetworkDespawn();
-        }
-
-        public void MoveToStartClient()
-        {
-            CharacterController.enabled = false;
-            transform.position = SpawnPosition;
-            CharacterController.enabled = true;
         }
     }
 }

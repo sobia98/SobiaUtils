@@ -22,6 +22,7 @@ namespace Sobia.Utils
         [SerializeField] private Button JoinOnlineButton;
         [SerializeField] private Button HostLocalButton;
         [SerializeField] private Button HostOnlineButton;
+        [SerializeField] private bool OnStartHostLobby = true;
 
         public static string CurrentJoinCode { get; private set; } = "";
         private static string LocalPlayerName { get; set; } = "Player"; // Default name
@@ -42,6 +43,11 @@ namespace Sobia.Utils
             JoinOnlineButton.onClick.AddListener(() => JoinOnline());
             HostLocalButton.onClick.AddListener(() => HostLocal());
             HostOnlineButton.onClick.AddListener(() => HostOnline());
+
+            if (OnStartHostLobby)
+            {
+                HostLocal();
+            }
         }
 
         private void UpdateLocalPlayerName(string newName)

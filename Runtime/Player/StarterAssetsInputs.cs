@@ -73,7 +73,7 @@ namespace Sobia.Utils
             Sprint = newSprintState;
         }
 
-        private void SetCursorState(bool newState)
+        public void SetCursorState(bool newState)
         {
             Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !newState;

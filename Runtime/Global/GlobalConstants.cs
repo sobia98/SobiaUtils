@@ -3,6 +3,7 @@ namespace Sobia.Utils
     public static class GlobalConstants
     {
         public const float DUMMY_FLOAT = 0.0f;
+        public const float COLORDISTANCECHECKER = 0.02f;
         public const bool DUMMY_BOOL = false;
         public const int NON_RELEVANT_USER = 999;
         public const int NEGATIVE_ONE = -1;

@@ -6,6 +6,8 @@ namespace Sobia.Utils
 {
     public class AudioManager : MonoBehaviour
     {
+        [SerializeField] private bool ShouldCheckReferences = false;
+
         [Header("Audio Sources")]
         [SerializeField] private AudioSource SFXSource;
 
@@ -24,6 +26,8 @@ namespace Sobia.Utils
         [SerializeField] private AudioClip OnClickClip;
         [SerializeField] private AudioClip OnHoverClip;
 
+        private float LastPlayTime;
+
         public static AudioManager Instance { get; private set; }
 
         private void Awake()
@@ -35,7 +39,10 @@ namespace Sobia.Utils
             }
 
             Instance = this;
-            CheckReferences();
+            if (ShouldCheckReferences)
+            {
+                CheckReferences();
+            }
         }
 
         private void Start()
@@ -106,6 +113,17 @@ namespace Sobia.Utils
 
             //start at startvolume next time
             source.volume = startVolume;
+        }
+
+        public void PlayCustomOneShot(AudioClip audioClip, float minTimeBetweenSounds)
+        {
+            if (Time.time - LastPlayTime < minTimeBetweenSounds) return;
+
+            SFXSource.pitch = Random.Range(0.85f, 1.05f);
+
+            SFXSource.PlayOneShot(audioClip);
+
+            LastPlayTime = Time.time;
         }
 
         private void CheckReferences()

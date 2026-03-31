@@ -95,7 +95,7 @@ namespace Sobia.Utils
             UISource.PlayOneShot(OnValueChangedClip);
         }
 
-        private IEnumerator FadeOutAndStop(AudioSource source, float duration)
+        public IEnumerator FadeOutAndStop(AudioSource source, float duration)
         {
             float startVolume = source.volume;
             float timeElapsed = 0f;

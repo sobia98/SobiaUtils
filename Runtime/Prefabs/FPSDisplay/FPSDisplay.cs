@@ -5,28 +5,20 @@ namespace Sobia.Utils
 {
     public class FPSDisplay : MonoBehaviour
     {
-        [Header("Setup")]
-        public TextMeshProUGUI FPSText;
-
         [Header("Settings")]
-        [SerializeField] private float UpdateInterval = 0.5f;
-
         public bool IsVisible = true;
 
+        [SerializeField] private float UpdateInterval = 0.5f;
+
+        private TextMeshProUGUI FPSText;
         private float UpdateDeltaTime = 0.0f;
         private float UpdateTimer = 0f;
 
-        private void Start()
+        private void Awake()
         {
-            if (FPSText == null)
-            {
-                Debug.LogError($"[FPSDisplay] Missing TextMeshPro reference on {gameObject.name}!");
-                enabled = false;
-                return;
-            }
+            FPSText = GetComponent<TextMeshProUGUI>();
+            SobiaUtils.IsAssigned(FPSText, nameof(FPSText), gameObject);
             FPSText.gameObject.SetActive(IsVisible);
-
-            Debug.Log(TMP_Settings.defaultFontAsset);
         }
 
         private void Update()

@@ -4,21 +4,7 @@ namespace Sobia.Utils
 {
     public static class SaveSettingsPlayerPrefs
     {
-        public static void SaveVSync(bool enabled)
-        {
-            PlayerPrefs.SetInt("VSync", enabled ? 1 : 0);
-        }
-
-        public static void SaveFullscreen(bool enabled)
-        {
-            PlayerPrefs.SetInt("Fullscreen", enabled ? 1 : 0);
-        }
-
-        public static void SaveShowFps(bool enabled)
-        {
-            PlayerPrefs.SetInt("ShowFps", enabled ? 1 : 0);
-        }
-
+        //Audio
         public static void SaveMasterVolume(float volume)
         {
             PlayerPrefs.SetFloat("MasterVolume", volume);
@@ -26,7 +12,17 @@ namespace Sobia.Utils
 
         public static float LoadMasterVolume()
         {
-            return PlayerPrefs.GetFloat("MasterVolume", 1.0f);
+            return PlayerPrefs.GetFloat("MasterVolume", 0.2f);
+        }
+
+        public static void SaveSFXVolume(float volume)
+        {
+            PlayerPrefs.SetFloat("SFXVolume", volume);
+        }
+
+        public static float LoadSFXVolume()
+        {
+            return PlayerPrefs.GetFloat("SFXVolume", 0.2f);
         }
 
         public static void SaveMusicVolume(float volume)
@@ -36,19 +32,20 @@ namespace Sobia.Utils
 
         public static float LoadMusicVolume()
         {
-            return PlayerPrefs.GetFloat("MusicVolume", 1.0f);
+            return PlayerPrefs.GetFloat("MusicVolume", 0.2f);
         }
 
-        public static void SaveSfxVolume(float volume)
+        public static void SaveUIVolume(float volume)
         {
-            PlayerPrefs.SetFloat("SfxVolume", volume);
+            PlayerPrefs.SetFloat("UIVolume", volume);
         }
 
-        public static float LoadSfxVolume()
+        public static float LoadUIVolume()
         {
-            return PlayerPrefs.GetFloat("SfxVolume", 1.0f);
+            return PlayerPrefs.GetFloat("UIVolume", 0.2f);
         }
 
+        //Graphics
         public static void SaveBrightness(float volume)
         {
             PlayerPrefs.SetFloat("Brightness", volume);
@@ -56,17 +53,22 @@ namespace Sobia.Utils
 
         public static float LoadBrightness()
         {
-            return PlayerPrefs.GetFloat("Brightness", 1.0f);
+            return PlayerPrefs.GetFloat("Brightness", 0.0f);
         }
 
-        public static bool LoadVSync()
+        public static void SaveFOV(float volume)
         {
-            return PlayerPrefs.GetInt("VSync", 1) == 1;
+            PlayerPrefs.SetFloat("FOV", volume);
         }
 
-        public static bool LoadFullscreen()
+        public static float LoadFOV()
         {
-            return PlayerPrefs.GetInt("Fullscreen", 1) == 1;
+            return PlayerPrefs.GetFloat("FOV", 60f);
+        }
+
+        public static void SaveShowFps(bool enabled)
+        {
+            PlayerPrefs.SetInt("ShowFps", enabled ? 1 : 0);
         }
 
         public static bool LoadShowFps()
@@ -74,14 +76,86 @@ namespace Sobia.Utils
             return PlayerPrefs.GetInt("ShowFps", 1) == 1;
         }
 
-        public static void LoadUIVolume()
+        public static void SaveTextureQuality(int index)
         {
-            PlayerPrefs.GetFloat("UIVolume", 1.0f);
+            PlayerPrefs.SetInt("TextureQuality", index);
         }
 
-        public static float SaveUIVolume(float volume)
+        public static int LoadTextureQuality()
         {
-            return PlayerPrefs.GetFloat("UIVolume", 1.0f);
+            return PlayerPrefs.GetInt("TextureQuality", 0);
+        }
+
+        public static void SaveVSync(bool enabled)
+        {
+            PlayerPrefs.SetInt("VSync", enabled ? 1 : 0);
+        }
+
+        public static bool LoadVSync()
+        {
+            return PlayerPrefs.GetInt("VSync", 1) == 1;
+        }
+
+        public static void SaveResolution(int index)
+        {
+            PlayerPrefs.SetInt("Resolution", index);
+        }
+
+        public static int LoadResolution()
+        {
+            return PlayerPrefs.GetInt("Resolution", 0);
+        }
+
+        public static void SaveMaxFramerate(float volume)
+        {
+            PlayerPrefs.SetFloat("MaxFramerate", volume);
+        }
+
+        public static float LoadMaxFramerate()
+        {
+            return PlayerPrefs.GetFloat("MaxFramerate", 60f);
+        }
+
+        public static void SaveFullscreen(bool enabled)
+        {
+            PlayerPrefs.SetInt("Fullscreen", enabled ? 1 : 0);
+        }
+
+        public static bool LoadFullscreen()
+        {
+            return PlayerPrefs.GetInt("Fullscreen", 1) == 1;
+        }
+
+        //General
+
+        public static void SaveInvertMouseX(bool enabled)
+        {
+            PlayerPrefs.SetInt("InvertMouseX", enabled ? 1 : 0);
+        }
+
+        public static bool LoadInvertMouseX()
+        {
+            return PlayerPrefs.GetInt("InvertMouseX", 1) == 1;
+        }
+
+        public static void SaveInvertMouseY(bool enabled)
+        {
+            PlayerPrefs.SetInt("InvertMouseY", enabled ? 1 : 0);
+        }
+
+        public static bool LoadInvertMouseY()
+        {
+            return PlayerPrefs.GetInt("InvertMouseY", 1) == 1;
+        }
+
+        public static void SaveSensitivity(float volume)
+        {
+            PlayerPrefs.SetFloat("Sensitivity", volume);
+        }
+
+        public static float LoadSensitivity()
+        {
+            return PlayerPrefs.GetFloat("Sensitivity", 1f);
         }
     }
 }

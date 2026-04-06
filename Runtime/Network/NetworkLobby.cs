@@ -1,4 +1,3 @@
-using log4net.Util;
 using TMPro;
 using Unity.Netcode;
 using Unity.Services.Relay;

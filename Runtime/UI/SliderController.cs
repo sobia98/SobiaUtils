@@ -1,4 +1,3 @@
-using Mono.Cecil;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
@@ -41,7 +40,7 @@ namespace Sobia.Utils
         public void SetSFXVolume(float value)
         {
             MyMixer.SetFloat("SFXVol", Mathf.Log10(value) * 20);
-            SaveSettingsPlayerPrefs.SaveSfxVolume(value);
+            SaveSettingsPlayerPrefs.SaveSFXVolume(value);
         }
 
         public void SetUIVolume(float value)

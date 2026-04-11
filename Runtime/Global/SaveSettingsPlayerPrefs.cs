@@ -22,7 +22,7 @@ namespace Sobia.Utils
 
         public static float LoadSFXVolume()
         {
-            return PlayerPrefs.GetFloat("SFXVolume", 0.2f);
+            return PlayerPrefs.GetFloat("SFXVolume", 0.35f);
         }
 
         public static void SaveMusicVolume(float volume)
@@ -32,7 +32,7 @@ namespace Sobia.Utils
 
         public static float LoadMusicVolume()
         {
-            return PlayerPrefs.GetFloat("MusicVolume", 0.2f);
+            return PlayerPrefs.GetFloat("MusicVolume", 0.25f);
         }
 
         public static void SaveUIVolume(float volume)
@@ -42,7 +42,7 @@ namespace Sobia.Utils
 
         public static float LoadUIVolume()
         {
-            return PlayerPrefs.GetFloat("UIVolume", 0.2f);
+            return PlayerPrefs.GetFloat("UIVolume", 0.3f);
         }
 
         //Graphics
@@ -63,7 +63,7 @@ namespace Sobia.Utils
 
         public static float LoadFOV()
         {
-            return PlayerPrefs.GetFloat("FOV", 60f);
+            return PlayerPrefs.GetFloat("FOV", 75f);
         }
 
         public static void SaveShowFps(bool enabled)
@@ -135,7 +135,7 @@ namespace Sobia.Utils
 
         public static bool LoadInvertMouseX()
         {
-            return PlayerPrefs.GetInt("InvertMouseX", 1) == 1;
+            return PlayerPrefs.GetInt("InvertMouseX", 0) == 1;
         }
 
         public static void SaveInvertMouseY(bool enabled)
@@ -145,7 +145,7 @@ namespace Sobia.Utils
 
         public static bool LoadInvertMouseY()
         {
-            return PlayerPrefs.GetInt("InvertMouseY", 1) == 1;
+            return PlayerPrefs.GetInt("InvertMouseY", 0) == 1;
         }
 
         public static void SaveSensitivity(float volume)

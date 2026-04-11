@@ -8,6 +8,15 @@ namespace Sobia.Utils
     {
         [SerializeField] private bool ShouldCheckReferences = false;
 
+        [Header("Sound Tuning")]
+        [SerializeField] private float MinOnHover = 0.2f;
+
+        [SerializeField] private float MaxOnHover = 0.45f;
+        [SerializeField] private float MinOnClick = 0.5f;
+        [SerializeField] private float MaxOnClick = 0.75f;
+        [SerializeField] private float MinOnChange = 0.4f;
+        [SerializeField] private float MaxOnChange = 0.65f;
+
         [Header("Audio Sources")]
         [SerializeField] private AudioSource SFXSource;
 
@@ -39,6 +48,7 @@ namespace Sobia.Utils
             }
 
             Instance = this;
+            DontDestroyOnLoad(gameObject);
             if (ShouldCheckReferences)
             {
                 CheckReferences();
@@ -79,18 +89,21 @@ namespace Sobia.Utils
 
         public void PlayUIOnClickSound()
         {
+            UISource.volume = Random.Range(MinOnClick, MaxOnClick);
             UISource.pitch = Random.Range(0.95f, 1.05f);
             UISource.PlayOneShot(OnClickClip);
         }
 
         public void PlayUIOnHoverSound()
         {
+            UISource.volume = Random.Range(MinOnHover, MaxOnHover);
             UISource.pitch = Random.Range(0.95f, 1.05f);
             UISource.PlayOneShot(OnHoverClip);
         }
 
         public void PlayUIOnValueChangedSound()
         {
+            UISource.volume = Random.Range(MinOnChange, MaxOnChange);
             UISource.pitch = Random.Range(0.95f, 1.05f);
             UISource.PlayOneShot(OnValueChangedClip);
         }

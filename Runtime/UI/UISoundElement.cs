@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -9,23 +8,26 @@ namespace Sobia.Utils
         [SerializeField] private float UpdateEveryX = 0.15f;
         private float LastPlayTime = 0f;
 
-        private void Start()
-        {
-        }
-
-        public void OnValueChanged(bool value)
+        public void OnValueChanged()
         {
             if (Time.unscaledTime - LastPlayTime >= UpdateEveryX)
             {
                 LastPlayTime = Time.unscaledTime;
+                AudioManager.Instance.PlayUIOnValueChangedSound();
             }
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public void OnPointerEnter(PointerEventData eventData)
         {
+            AudioManager.Instance.PlayUIOnHoverSound();
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        public void OnClickSound()
+        {
+            AudioManager.Instance.PlayUIOnClickSound();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
         {
         }
     }

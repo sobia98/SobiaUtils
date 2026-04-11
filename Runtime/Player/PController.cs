@@ -6,7 +6,6 @@ using UnityEngine.InputSystem;
 namespace Sobia.Utils
 {
     [RequireComponent(typeof(CharacterController))]
-    [RequireComponent(typeof(PlayerInput))]
     public class PController : NetworkBehaviour
     {
         [Header("Player")]
@@ -101,7 +100,6 @@ namespace Sobia.Utils
         private int AnimIDMotionSpeed;
         private int _animIDPressingButton;
 
-        private PlayerInput PlayerInput;
         private Animator Animator;
         private CharacterController Controller;
         private StarterAssetsInputs Input;
@@ -115,11 +113,16 @@ namespace Sobia.Utils
         {
             get
             {
-#if ENABLE_INPUT_SYSTEM
-                return PlayerInput.currentControlScheme == "KeyboardMouse";
-#else
-				return false;
-#endif
+                // Check if the last device used by the user was a Mouse or Keyboard
+                if (InputSystem.devices.Count > 0)
+                {
+                    var lastDevice = InputSystem.GetDevice<Pointer>();
+                    if (lastDevice != null && lastDevice.wasUpdatedThisFrame) return true;
+
+                    // Alternatively, check the general active control
+                    return Mouse.current != null && Mouse.current.wasUpdatedThisFrame;
+                }
+                return false;
             }
         }
 
@@ -138,7 +141,6 @@ namespace Sobia.Utils
             HasAnimator = TryGetComponent(out Animator); // in case we use Animator
             Controller = GetComponent<CharacterController>();
             Input = GetComponent<StarterAssetsInputs>();
-            PlayerInput = GetComponent<PlayerInput>();
 
             AssignAnimationIDs();
 

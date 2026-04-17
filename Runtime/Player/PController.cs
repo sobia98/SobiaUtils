@@ -126,6 +126,35 @@ namespace Sobia.Utils
             }
         }
 
+        #region Private Code
+
+        private bool IsPaused = false;
+
+        private void HandlePause(bool isPaused)
+        {
+            IsPaused = isPaused;
+
+            if (IsPaused)
+            {
+                Input.Look = Vector2.zero;
+                Input.Move = Vector2.zero;
+            }
+        }
+
+        public override void OnNetworkSpawn()
+        {
+            if (!IsOwner) return;
+            GameEvents.OnTogglePause += HandlePause;
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (!IsOwner) return;
+            GameEvents.OnTogglePause -= HandlePause;
+        }
+
+        #endregion Private Code
+
         private void Awake()
         {
             if (MainCamera is null)
@@ -163,6 +192,7 @@ namespace Sobia.Utils
 
         private void LateUpdate()
         {
+            if (!IsOwner || IsPaused) return;
             CameraRotation();
         }
 

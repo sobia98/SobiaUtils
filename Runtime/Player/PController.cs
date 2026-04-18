@@ -1,18 +1,16 @@
 using UnityEngine;
-using Unity.Netcode;
 using Unity.Cinemachine;
 using UnityEngine.InputSystem;
 
 namespace Sobia.Utils
 {
     [RequireComponent(typeof(CharacterController))]
-    public class PController : NetworkBehaviour
+    public class PController : MonoBehaviour // Changed from NetworkBehaviour
     {
         [Header("Player")]
         [SerializeField] private bool ThirdPerson = true;
 
         [SerializeField] private float MoveSpeed = 2.0f;
-
         [SerializeField] private float SprintSpeed = 5.335f;
 
         [Tooltip("The lower the faster")]
@@ -32,63 +30,36 @@ namespace Sobia.Utils
         [Header("Jumping")]
         [SerializeField] private float JumpHeight = 1.2f;
 
-        [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
         [SerializeField] private float Gravity = -15.0f;
-
-        [Space(10)]
-        [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
         [SerializeField] private float JumpTimeout = 0.50f;
-
-        [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
         [SerializeField] private float FallTimeout = 0.15f;
 
         [Header("Player Grounded")]
-        [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
         public bool Grounded { get; private set; } = true;
 
-        [Tooltip("Useful for rough ground")]
         public float GroundedOffset { get; private set; } = -0.14f;
-
-        [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
         public float GroundedRadius { get; private set; } = 0.28f;
-
-        [Tooltip("What layers the character uses as ground")]
         [SerializeField] private LayerMask GroundLayers;
 
         [Header("Cinemachine")]
-        [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
         [SerializeField] private GameObject CinemachineCamera;
 
-        [Tooltip("How far in degrees can you move the camera up")]
         [SerializeField] private float TopClamp = 70.0f;
-
-        [Tooltip("How far in degrees can you move the camera down")]
         [SerializeField] private float BottomClamp = -30.0f;
-
-        [Tooltip("Additional degress to override the camera. Useful for fine tuning camera position when locked")]
         [SerializeField] private float CameraAngleOverride = 0.0f;
-
-        [Tooltip("For locking the camera position on all axis")]
         [SerializeField] private bool LockCameraPosition = false;
 
         // private fields
-        // cinemachine
         private float CinemachineTargetYaw;
 
         private float CinemachineTargetPitch;
-
-        // player
         private float Speed;
-
         private float AnimationBlend;
         private float TargetRotation = 0.0f;
         private float RotationVelocity;
         private float VerticalVelocity;
         private float TerminalVelocity = 53.0f;
-
-        // timeout deltatime
         private float JumpTimeoutDelta;
-
         private float FallTimeoutDelta;
 
         // animation IDs
@@ -98,7 +69,6 @@ namespace Sobia.Utils
         private int AnimIDJump;
         private int AnimIDFreeFall;
         private int AnimIDMotionSpeed;
-        private int _animIDPressingButton;
 
         private Animator Animator;
         private CharacterController Controller;
@@ -106,54 +76,22 @@ namespace Sobia.Utils
         private GameObject MainCamera;
 
         private const float Threshold = 0.01f;
-
         private bool HasAnimator;
+        private bool IsPaused = false;
 
         private bool IsCurrentDeviceMouse
         {
             get
             {
-                // Check if the last device used by the user was a Mouse or Keyboard
                 if (InputSystem.devices.Count > 0)
                 {
                     var lastDevice = InputSystem.GetDevice<Pointer>();
                     if (lastDevice != null && lastDevice.wasUpdatedThisFrame) return true;
-
-                    // Alternatively, check the general active control
                     return Mouse.current != null && Mouse.current.wasUpdatedThisFrame;
                 }
                 return false;
             }
         }
-
-        #region Private Code
-
-        private bool IsPaused = false;
-
-        private void HandlePause(bool isPaused)
-        {
-            IsPaused = isPaused;
-
-            if (IsPaused)
-            {
-                Input.Look = Vector2.zero;
-                Input.Move = Vector2.zero;
-            }
-        }
-
-        public override void OnNetworkSpawn()
-        {
-            if (!IsOwner) return;
-            GameEvents.OnTogglePause += HandlePause;
-        }
-
-        public override void OnNetworkDespawn()
-        {
-            if (!IsOwner) return;
-            GameEvents.OnTogglePause -= HandlePause;
-        }
-
-        #endregion Private Code
 
         private void Awake()
         {
@@ -163,26 +101,33 @@ namespace Sobia.Utils
             }
         }
 
+        private void OnEnable() // Replaced OnNetworkSpawn
+        {
+            GameEvents.OnTogglePause += HandlePause;
+        }
+
+        private void OnDisable() // Replaced OnNetworkDespawn
+        {
+            GameEvents.OnTogglePause -= HandlePause;
+        }
+
         private void Start()
         {
             CinemachineTargetYaw = CinemachineCamera.transform.rotation.eulerAngles.y;
 
-            HasAnimator = TryGetComponent(out Animator); // in case we use Animator
+            HasAnimator = TryGetComponent(out Animator);
             Controller = GetComponent<CharacterController>();
             Input = GetComponent<StarterAssetsInputs>();
 
             AssignAnimationIDs();
 
-            // reset our timeouts on start
             JumpTimeoutDelta = JumpTimeout;
             FallTimeoutDelta = FallTimeout;
         }
 
         private void Update()
         {
-            if (!IsOwner) return;
-
-            // Don't update movement if controller is disabled (e.g., during spawn positioning)
+            // Removed IsOwner check
             if (Controller == null || !Controller.enabled) return;
 
             JumpAndGravity();
@@ -192,15 +137,24 @@ namespace Sobia.Utils
 
         private void LateUpdate()
         {
-            if (!IsOwner || IsPaused) return;
+            if (IsPaused) return; // Removed IsOwner check
             CameraRotation();
+        }
+
+        private void HandlePause(bool isPaused)
+        {
+            IsPaused = isPaused;
+            if (IsPaused)
+            {
+                Input.Look = Vector2.zero;
+                Input.Move = Vector2.zero;
+            }
         }
 
         private void JumpAndGravity()
         {
             if (Grounded)
             {
-                // reset the fall timeout timer
                 FallTimeoutDelta = FallTimeout;
 
                 if (HasAnimator)
@@ -209,26 +163,17 @@ namespace Sobia.Utils
                     Animator.SetBool(AnimIDFreeFall, false);
                 }
 
-                // stop our velocity dropping infinitely when grounded
                 if (VerticalVelocity < 0.0f)
                 {
                     VerticalVelocity = -2f;
                 }
 
-                // Jump
                 if (Input.Jump && JumpTimeoutDelta <= 0.0f)
                 {
-                    // the square root of H * -2 * G = how much velocity needed to reach desired height
                     VerticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
-
-                    // update animator if using character
-                    if (HasAnimator)
-                    {
-                        Animator.SetBool(AnimIDJump, true);
-                    }
+                    if (HasAnimator) Animator.SetBool(AnimIDJump, true);
                 }
 
-                // jump timeout
                 if (JumpTimeoutDelta >= 0.0f)
                 {
                     JumpTimeoutDelta -= Time.deltaTime;
@@ -236,27 +181,19 @@ namespace Sobia.Utils
             }
             else
             {
-                // reset the jump timeout timer
                 JumpTimeoutDelta = JumpTimeout;
-
-                // fall timeout
                 if (FallTimeoutDelta >= 0.0f)
                 {
                     FallTimeoutDelta -= Time.deltaTime;
                 }
                 else
                 {
-                    if (HasAnimator)
-                    {
-                        Animator.SetBool(AnimIDFreeFall, true);
-                    }
+                    if (HasAnimator) Animator.SetBool(AnimIDFreeFall, true);
                 }
 
-                // if we are not grounded, do not jump
                 Input.Jump = false;
             }
 
-            // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
             if (VerticalVelocity < TerminalVelocity)
             {
                 VerticalVelocity += Gravity * Time.deltaTime;
@@ -265,45 +202,24 @@ namespace Sobia.Utils
 
         private void GroundedCheck()
         {
-            // set sphere position, with offset
-            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset,
-                transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
-                QueryTriggerInteraction.Ignore);
+            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
+            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 
-            if (HasAnimator)
-            {
-                Animator.SetBool(AnimIDGrounded, Grounded);
-            }
+            if (HasAnimator) Animator.SetBool(AnimIDGrounded, Grounded);
         }
 
         private void Move()
         {
-            // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = Input.Sprint ? SprintSpeed : MoveSpeed;
-
-            // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
-
-            // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-            // if there is no input, set the target speed to 0
             if (Input.Move == Vector2.zero) targetSpeed = 0.0f;
 
-            // a reference to the players current horizontal velocity
             float currentHorizontalSpeed = new Vector3(Controller.velocity.x, 0.0f, Controller.velocity.z).magnitude;
-
             float speedOffset = 0.1f;
             float inputMagnitude = Input.AnalogMovement ? Input.Move.magnitude : 1f;
 
-            // accelerate or decelerate to target speed
-            if (currentHorizontalSpeed < targetSpeed - speedOffset ||
-                currentHorizontalSpeed > targetSpeed + speedOffset)
+            if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
             {
-                // creates curved result rather than a linear one giving a more organic speed change
-                // note T in Lerp is clamped, so we don't need to clamp our speed
-                Speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
-                    Time.deltaTime * SpeedChangeRate);
-
-                // round speed to 3 decimal places
+                Speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
                 Speed = Mathf.Round(Speed * 1000f) / 1000f;
             }
             else
@@ -314,27 +230,18 @@ namespace Sobia.Utils
             AnimationBlend = Mathf.Lerp(AnimationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
             if (AnimationBlend < 0.01f) AnimationBlend = 0f;
 
-            // normalise input direction
             Vector3 inputDirection = new Vector3(Input.Move.x, 0.0f, Input.Move.y).normalized;
 
-            // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-            // if there is a move input rotate player when the player is moving
             if (Input.Move != Vector2.zero)
             {
-                TargetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
-                                  MainCamera.transform.eulerAngles.y;
-                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, TargetRotation, ref RotationVelocity,
-                    RotationSmoothTime);
-
-                // rotate to face input direction relative to camera position
+                TargetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + MainCamera.transform.eulerAngles.y;
+                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, TargetRotation, ref RotationVelocity, RotationSmoothTime);
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
             Vector3 targetDirection = Quaternion.Euler(0.0f, TargetRotation, 0.0f) * Vector3.forward;
 
-            // move the player
-            Controller.Move(targetDirection.normalized * (Speed * Time.deltaTime) +
-                             new Vector3(0.0f, VerticalVelocity, 0.0f) * Time.deltaTime);
+            Controller.Move(targetDirection.normalized * (Speed * Time.deltaTime) + new Vector3(0.0f, VerticalVelocity, 0.0f) * Time.deltaTime);
 
             if (HasAnimator)
             {
@@ -354,23 +261,17 @@ namespace Sobia.Utils
 
         private void CameraRotation()
         {
-            // if there is an input and camera position is not fixed
             if (Input.Look.sqrMagnitude >= Threshold && !LockCameraPosition)
             {
-                //Don't multiply mouse input by Time.deltaTime;
                 float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
-
                 CinemachineTargetYaw += Input.Look.x * deltaTimeMultiplier;
                 CinemachineTargetPitch += Input.Look.y * deltaTimeMultiplier;
             }
 
-            // clamp our rotations so our values are limited 360 degrees
             CinemachineTargetYaw = ClampAngle(CinemachineTargetYaw, float.MinValue, float.MaxValue);
             CinemachineTargetPitch = ClampAngle(CinemachineTargetPitch, BottomClamp, TopClamp);
 
-            // Cinemachine will follow this target
-            CinemachineCamera.transform.rotation = Quaternion.Euler(CinemachineTargetPitch + CameraAngleOverride,
-                CinemachineTargetYaw, 0.0f);
+            CinemachineCamera.transform.rotation = Quaternion.Euler(CinemachineTargetPitch + CameraAngleOverride, CinemachineTargetYaw, 0.0f);
         }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)

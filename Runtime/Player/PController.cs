@@ -95,9 +95,14 @@ namespace Sobia.Utils
 
         private void Awake()
         {
-            if (MainCamera is null)
+            if (MainCamera == null) // Standard Unity null check
             {
                 MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+
+                if (MainCamera == null)
+                {
+                    Debug.LogError("PController: No GameObject with 'MainCamera' tag found in the scene!"); //
+                }
             }
         }
 

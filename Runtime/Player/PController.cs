@@ -173,9 +173,15 @@ namespace Sobia.Utils
                     VerticalVelocity = -2f;
                 }
 
-                // BHOP LOGIC: Trigger jump immediately if button is held or pressed
+                // JUMP TRIGGER
                 if (Input.Jump && JumpTimeoutDelta <= 0.0f)
                 {
+                    // 1. Accumulate speed on jump
+                    Speed += 0.5f;
+
+                    // 2. Cap the speed at 35
+                    if (Speed > 35.0f) Speed = 35.0f;
+
                     VerticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
                     if (HasAnimator) Animator.SetBool(AnimIDJump, true);
                 }
@@ -196,9 +202,6 @@ namespace Sobia.Utils
                 {
                     if (HasAnimator) Animator.SetBool(AnimIDFreeFall, true);
                 }
-
-                // REMOVED: Input.Jump = false;
-                // We keep it true so that holding jump allows for consistent hopping
             }
 
             if (VerticalVelocity < TerminalVelocity)
@@ -217,32 +220,26 @@ namespace Sobia.Utils
 
         private void Move()
         {
-            float targetSpeed = Input.Sprint ? SprintSpeed : MoveSpeed;
-            if (Input.Move == Vector2.zero) targetSpeed = 0.0f;
+            // Determine the base speed we should be at
+            float targetBaseSpeed = Input.Sprint ? SprintSpeed : MoveSpeed;
+            if (Input.Move == Vector2.zero) targetBaseSpeed = 0.0f;
 
-            // Calculate current horizontal velocity
-            Vector3 horizontalVelocity = new Vector3(Controller.velocity.x, 0.0f, Controller.velocity.z);
-            float currentHorizontalSpeed = horizontalVelocity.magnitude;
-
-            float speedOffset = 0.1f;
-            float inputMagnitude = Input.AnalogMovement ? Input.Move.magnitude : 1f;
-
-            // BHOP LOGIC: If we are in the air or jumping right as we land,
-            // don't let the Lerp slow us down if we are going faster than targetSpeed.
-            bool maintainMomentum = !Grounded || (Input.Jump && JumpTimeoutDelta <= 0.0f);
-
-            if (currentHorizontalSpeed < targetSpeed - speedOffset || (currentHorizontalSpeed > targetSpeed + speedOffset && !maintainMomentum))
+            // SPRINT TAKEOVER: If we are sprinting and our current speed is less than SprintSpeed,
+            // boost us up to the SprintSpeed immediately.
+            if (Input.Sprint && Speed < SprintSpeed && Input.Move != Vector2.zero)
             {
-                Speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
-                Speed = Mathf.Round(Speed * 1000f) / 1000f;
+                Speed = SprintSpeed;
             }
-            else if (!maintainMomentum)
-            {
-                Speed = targetSpeed;
-            }
-            // If maintainMomentum is true and we are fast, we just keep the 'Speed' as currentHorizontalSpeed
 
-            AnimationBlend = Mathf.Lerp(AnimationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+            // GROUND DECAY: If we are on the ground and NOT jumping, bleed speed back to targetBaseSpeed
+            if (Grounded && !Input.Jump)
+            {
+                // This ensures that if we stop jumping, we eventually slow down to normal walking/running
+                Speed = Mathf.Lerp(Speed, targetBaseSpeed, Time.deltaTime * SpeedChangeRate);
+            }
+
+            // Animation handling
+            AnimationBlend = Mathf.Lerp(AnimationBlend, targetBaseSpeed, Time.deltaTime * SpeedChangeRate);
             if (AnimationBlend < 0.01f) AnimationBlend = 0f;
 
             Vector3 inputDirection = new Vector3(Input.Move.x, 0.0f, Input.Move.y).normalized;
@@ -250,23 +247,24 @@ namespace Sobia.Utils
             if (Input.Move != Vector2.zero)
             {
                 TargetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + MainCamera.transform.eulerAngles.y;
-
-                // Only rotate the player body if we are grounded or in Third Person
-                // In First Person, your CameraRotation usually handles the body orientation
                 float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, TargetRotation, ref RotationVelocity, RotationSmoothTime);
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
             Vector3 targetDirection = Quaternion.Euler(0.0f, TargetRotation, 0.0f) * Vector3.forward;
 
-            // Move the controller
-            Controller.Move(targetDirection.normalized * (Speed * Time.deltaTime) +
+            // Apply movement
+            // Note: If Input.Move is zero, targetDirection becomes the last direction,
+            // but targetBaseSpeed (and thus Speed decay) handles the stop.
+            float moveSpeed = (Input.Move == Vector2.zero) ? 0f : Speed;
+
+            Controller.Move(targetDirection.normalized * (moveSpeed * Time.deltaTime) +
                              new Vector3(0.0f, VerticalVelocity, 0.0f) * Time.deltaTime);
 
             if (HasAnimator)
             {
                 Animator.SetFloat(AnimIDSpeed, AnimationBlend);
-                Animator.SetFloat(AnimIDMotionSpeed, inputMagnitude);
+                Animator.SetFloat(AnimIDMotionSpeed, Input.AnalogMovement ? Input.Move.magnitude : 1f);
             }
         }
 

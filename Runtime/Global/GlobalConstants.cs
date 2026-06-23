@@ -10,5 +10,7 @@ namespace Sobia.Utils
         public const int POSITIVE_ONE = 1;
         public const int MAX_NUMBER_PLAYERS = 4;
         public const string COPIED = "Copied!";
+        public const string PAINTROLLERMAIN = "PaintRollerMain";
+        public const string PAINTGUNMAIN = "PaintGunMain";
     }
 }

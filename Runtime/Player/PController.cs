@@ -40,6 +40,7 @@ namespace Sobia.Utils
         public float GroundedOffset { get; private set; } = -0.14f;
         public float GroundedRadius { get; private set; } = 0.28f;
         [SerializeField] private LayerMask GroundLayers;
+        [SerializeField] private LayerMask PaintableLayer;
 
         [Header("Cinemachine")]
         [SerializeField] private GameObject CinemachineCamera;
@@ -212,8 +213,10 @@ namespace Sobia.Utils
 
         private void GroundedCheck()
         {
+            LayerMask combinedGroundMask = GroundLayers | PaintableLayer;
+
             Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
+            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, combinedGroundMask, QueryTriggerInteraction.Ignore);
 
             if (HasAnimator) Animator.SetBool(AnimIDGrounded, Grounded);
         }

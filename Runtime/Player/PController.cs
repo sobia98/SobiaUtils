@@ -345,7 +345,7 @@ namespace Sobia.Utils
             JumpAndLandAudioSource.pitch = Random.Range(MinOnLandPitch, MaxOnLandPitch);
             if (!JumpAndLandAudioSource.isPlaying)
             {
-                JumpAndLandAudioSource.PlayOneShot(OnLandClips[Random.Range(0, OnLandClips.Count)], OnLandVolume);
+                JumpAndLandAudioSource.PlayOneShot(OnLandClips[Random.Range(0, OnLandClips.Length)], OnLandVolume);
             }
         }
     }

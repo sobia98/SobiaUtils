@@ -81,7 +81,7 @@ namespace Sobia.Utils
         public AudioSource JumpAndLandAudioSource;
 
         [Header("OnJump")]
-        [SerializeField] private List<AudioClip> OnJumpClips;
+        [SerializeField] private AudioClip[] OnJumpClips;
 
         [Range(0f, 1f)]
         [SerializeField] private float OnJumpVolume = 0.5f;
@@ -91,7 +91,7 @@ namespace Sobia.Utils
         [Range(0.05f, 1.0f)][SerializeField] private float OnJumpCooldown = 0.2f;
 
         [Header("OnLand")]
-        [SerializeField] private List<AudioClip> OnLandClips;
+        [SerializeField] private AudioClip[] OnLandClips;
 
         [Range(0f, 1f)]
         [SerializeField] private float OnLandVolume = 0.5f;
@@ -204,7 +204,7 @@ namespace Sobia.Utils
                     JumpAndLandAudioSource.pitch = Random.Range(MinOnJumpPitch, MaxOnJumpPitch);
                     if (!JumpAndLandAudioSource.isPlaying)
                     {
-                        JumpAndLandAudioSource.PlayOneShot(OnJumpClips[Random.Range(0, OnJumpClips.Count)], OnJumpVolume);
+                        JumpAndLandAudioSource.PlayOneShot(OnJumpClips[Random.Range(0, OnJumpClips.Length)], OnJumpVolume);
                     }
                     Speed += 0.5f;
 

@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Cinemachine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 namespace Sobia.Utils
 {
@@ -18,10 +19,6 @@ namespace Sobia.Utils
         [SerializeField] private float RotationSmoothTime = 0.12f;
 
         [SerializeField] private float SpeedChangeRate = 10.0f;
-
-        [Space(10)]
-        [Header("Audio")]
-        [SerializeField] private AudioClip LandingAudioClip;
 
         [SerializeField] private AudioClip[] FootstepAudioClips;
         [Range(0, 1)][SerializeField] private float FootstepAudioVolume = 0.5f;
@@ -79,6 +76,32 @@ namespace Sobia.Utils
         private const float Threshold = 0.01f;
         private bool HasAnimator;
         private bool IsPaused = false;
+
+        [Header("Audio")]
+        public AudioSource JumpAndLandAudioSource;
+
+        [Header("OnJump")]
+        [SerializeField] private List<AudioClip> OnJumpClips;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnJumpVolume = 0.5f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnJumpPitch = 0.9f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnJumpPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnJumpCooldown = 0.2f;
+
+        [Header("OnLand")]
+        [SerializeField] private List<AudioClip> OnLandClips;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnLandVolume = 0.5f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnLandPitch = 0.9f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnLandPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnLandCooldown = 0.2f;
+
+        public float WalkPitch = 1.0f;
+        public float SprintPitch = 1.3f;
 
         private bool IsCurrentDeviceMouse
         {
@@ -178,6 +201,11 @@ namespace Sobia.Utils
                 if (Input.Jump && JumpTimeoutDelta <= 0.0f)
                 {
                     // 1. Accumulate speed on jump
+                    JumpAndLandAudioSource.pitch = Random.Range(MinOnJumpPitch, MaxOnJumpPitch);
+                    if (!JumpAndLandAudioSource.isPlaying)
+                    {
+                        JumpAndLandAudioSource.PlayOneShot(OnJumpClips[Random.Range(0, OnJumpClips.Count)], OnJumpVolume);
+                    }
                     Speed += 0.5f;
 
                     // 2. Cap the speed at 35
@@ -257,8 +285,6 @@ namespace Sobia.Utils
             Vector3 targetDirection = Quaternion.Euler(0.0f, TargetRotation, 0.0f) * Vector3.forward;
 
             // Apply movement
-            // Note: If Input.Move is zero, targetDirection becomes the last direction,
-            // but targetBaseSpeed (and thus Speed decay) handles the stop.
             float moveSpeed = (Input.Move == Vector2.zero) ? 0f : Speed;
 
             Controller.Move(targetDirection.normalized * (moveSpeed * Time.deltaTime) +
@@ -316,9 +342,10 @@ namespace Sobia.Utils
 
         private void OnLand(AnimationEvent animationEvent)
         {
-            if (animationEvent.animatorClipInfo.weight > 0.5f)
+            JumpAndLandAudioSource.pitch = Random.Range(MinOnLandPitch, MaxOnLandPitch);
+            if (!JumpAndLandAudioSource.isPlaying)
             {
-                AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(Controller.center), FootstepAudioVolume);
+                JumpAndLandAudioSource.PlayOneShot(OnLandClips[Random.Range(0, OnLandClips.Count)], OnLandVolume);
             }
         }
     }

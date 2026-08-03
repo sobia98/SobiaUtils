@@ -249,14 +249,6 @@ namespace Sobia.Utils
             PlaySFX(clip, 0.15f, 0.9f, 1.1f);
         }
 
-        public void PlayCustomOneShot(AudioClip audioClip, float minTimeBetweenSounds)
-        {
-            if (Time.time - LastPlayTime < minTimeBetweenSounds) return;
-
-            PlaySFX(audioClip, 1.0f, 0.85f, 1.05f);
-            LastPlayTime = Time.time;
-        }
-
         // ==========================================
         // UI SOUNDS
         // ==========================================

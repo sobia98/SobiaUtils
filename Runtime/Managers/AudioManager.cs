@@ -1,12 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace Sobia.Utils
 {
     public class AudioManager : MonoBehaviour
     {
         [SerializeField] private bool ShouldCheckReferences = false;
+
+        [Header("Audio Mixer Routing")]
+        [SerializeField] private AudioMixerGroup SFXMixerGroup;
+
+        [SerializeField] private AudioMixerGroup UIMixerGroup;
+        [SerializeField] private AudioMixerGroup MusicMixerGroup;
 
         [Header("Sound Tuning")]
         [SerializeField] private float MinOnHover = 0.2f;
@@ -17,12 +24,15 @@ namespace Sobia.Utils
         [SerializeField] private float MinOnChange = 0.4f;
         [SerializeField] private float MaxOnChange = 0.65f;
 
-        [Header("Audio Sources")]
-        [SerializeField] private AudioSource SFXSource;
-
-        [SerializeField] private AudioSource CollectSFXSource;
+        [Header("Core Audio Channels")]
         [SerializeField] private AudioSource BackgroundSource;
+
         [SerializeField] private AudioSource UISource;
+
+        [Header("Audio Source Pooling")]
+        [SerializeField] private int PoolSize = 10;
+
+        private List<AudioSource> sfxPool = new List<AudioSource>();
 
         [Header("Background Music")]
         [SerializeField] private List<AudioClip> BackgroundList;
@@ -34,9 +44,72 @@ namespace Sobia.Utils
 
         [SerializeField] private AudioClip OnClickClip;
         [SerializeField] private AudioClip OnHoverClip;
+        [SerializeField] private AudioClip OnSurfaceCompleted;
+        [SerializeField] private AudioClip OnUpgradeClip;
 
         private float LastPlayTime;
 
+        [Header("OnCompletionObject")]
+        [SerializeField] private AudioClip OnCompleitionObjectClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnCompletionObjectVolume = 0.5f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnCompletionObjectPitch = 0.9f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnCompletionObjectPitch = 1.1f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnCompletionObjectCooldown = 0.2f;
+
+        [Header("OnCompletionSurface")]
+        [SerializeField] private AudioClip OnCompleitionSurfaceClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnCompletionSurfaceVolume = 0.5f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnCompletionSurfacePitch = 0.9f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnCompletionSurfacePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnCompletionSurfaceCooldown = 0.2f;
+
+        [Header("OnObjectToBarBeginn")]
+        [SerializeField] private AudioClip OnObjectToBarBeginnClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnObjectToBarBeginnVolume = 0.3f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnObjectToBarBeginnPitch = 1.4f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnObjectToBarBeginnPitch = 1.6f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnObjectToBarBeginnCooldown = 0.2f;
+
+        [Header("OnObjectToBarEnd")]
+        [SerializeField] private AudioClip OnObjectToBarEndClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnObjectToBarEndVolume = 0.3f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnObjectToBarEndPitch = 1.4f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnObjectToBarEndPitch = 1.6f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnObjectToBarEndCooldown = 0.2f;
+
+        [Header("OnSurfaceToObject")]
+        [SerializeField] private AudioClip OnSurfaceToObjectClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnSurfaceToObjectVolume = 0.15f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnSurfaceToObjectPitch = 0.85f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnSurfaceToObjectPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnSurfaceToObjectCooldown = 0.2f;
+
+        [Header("OnCollectCoin")]
+        [SerializeField] private AudioClip OnCollectCoinClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnCollectCoinVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnCollectCoinPitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnCollectCoinPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnCollectCoinCooldown = 0.2f;
+
+        private Dictionary<AudioClip, float> lastPlayTimes = new Dictionary<AudioClip, float>();
         public static AudioManager Instance { get; private set; }
 
         private void Awake()
@@ -49,6 +122,9 @@ namespace Sobia.Utils
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            InitializePool();
+
             if (ShouldCheckReferences)
             {
                 CheckReferences();
@@ -64,6 +140,93 @@ namespace Sobia.Utils
             }
         }
 
+        // ==========================================
+        // AUDIO POOL MANAGEMENT
+        // ==========================================
+        private void InitializePool()
+        {
+            GameObject poolContainer = new GameObject("SFX_Pool");
+            poolContainer.transform.SetParent(transform);
+
+            for (int i = 0; i < PoolSize; i++)
+            {
+                AudioSource newSource = poolContainer.AddComponent<AudioSource>();
+                newSource.playOnAwake = false;
+
+                // ASSIGN MIXER GROUP HERE
+                if (SFXMixerGroup != null)
+                {
+                    newSource.outputAudioMixerGroup = SFXMixerGroup;
+                }
+
+                sfxPool.Add(newSource);
+            }
+        }
+
+        private AudioSource GetAvailableSFXSource()
+        {
+            foreach (var source in sfxPool)
+            {
+                if (!source.isPlaying) return source;
+            }
+
+            // Fallback: If all sources are busy, grab the first one
+            return sfxPool[0];
+        }
+
+        public void PlayCompletionObjectSound()
+        {
+            PlaySFX(OnCompleitionObjectClip, OnCompletionObjectVolume, MinOnCompletionObjectPitch, MaxOnCompletionObjectPitch, OnCompletionObjectCooldown);
+        }
+
+        public void PlayCompletionSurfaceSound()
+        {
+            PlaySFX(OnCompleitionSurfaceClip, OnCompletionSurfaceVolume, MinOnCompletionSurfacePitch, MaxOnCompletionSurfacePitch, OnCompletionSurfaceCooldown);
+        }
+
+        public void PlayObjectToBarBeginnSound()
+        {
+            PlaySFX(OnObjectToBarBeginnClip, OnObjectToBarBeginnVolume, MinOnObjectToBarBeginnPitch, MaxOnObjectToBarBeginnPitch, OnObjectToBarBeginnCooldown);
+        }
+
+        public void PlayObjectToBarEndSound()
+        {
+            PlaySFX(OnObjectToBarEndClip, OnObjectToBarEndVolume, MinOnObjectToBarEndPitch, MaxOnObjectToBarEndPitch, OnObjectToBarEndCooldown);
+        }
+
+        public void PlaySurfaceToObjectSound()
+        {
+            PlaySFX(OnSurfaceToObjectClip, OnSurfaceToObjectVolume, MinOnSurfaceToObjectPitch, MaxOnSurfaceToObjectPitch, OnSurfaceToObjectCooldown);
+        }
+
+        public void PlayCollectCoinSound()
+        {
+            PlaySFX(OnCollectCoinClip, OnCollectCoinVolume, MinOnCollectCoinPitch, MaxOnCollectCoinPitch, OnCollectCoinCooldown);
+        }
+
+        // Helper to play any gameplay sound with custom pitch/volume without clashing
+        private void PlaySFX(AudioClip clip, float volume = 1.0f, float minPitch = 0.9f, float maxPitch = 1.1f, float cooldown = 0.1f)
+        {
+            if (clip == null) return;
+
+            // Check if the clip was played too recently
+            if (lastPlayTimes.TryGetValue(clip, out float lastTime))
+            {
+                if (Time.time - lastTime < cooldown) return; // Block playback
+            }
+
+            // Update the last play time for this clip
+            lastPlayTimes[clip] = Time.time;
+
+            AudioSource source = GetAvailableSFXSource();
+            source.pitch = Random.Range(minPitch, maxPitch);
+            source.PlayOneShot(clip, volume);
+            Debug.Log($"Playing SFX: {clip.name} at volume {volume} and pitch {source.pitch}");
+        }
+
+        // ==========================================
+        // BACKGROUND MUSIC
+        // ==========================================
         private void PlayNextTrack()
         {
             CurrentTrackIndex = (CurrentTrackIndex + 1) % BackgroundList.Count;
@@ -74,46 +237,57 @@ namespace Sobia.Utils
         {
             BackgroundSource.clip = BackgroundList[index];
             BackgroundSource.Play();
-
-            // Call the next track automatically when this one ends
-            Invoke("PlayNextTrack", BackgroundList[index].length);
+            Invoke(nameof(PlayNextTrack), BackgroundList[index].length);
         }
 
+        // ==========================================
+        // GAMEPLAY SFX
+        // ==========================================
         public IEnumerator PlayDelayedSound(AudioClip clip)
         {
             yield return new WaitForSeconds(Random.Range(0f, 0.15f));
-            CollectSFXSource.volume = 0.15f;
-            CollectSFXSource.pitch = Random.Range(0.9f, 1.1f);
-            CollectSFXSource.PlayOneShot(clip);
+            PlaySFX(clip, 0.15f, 0.9f, 1.1f);
         }
 
+        public void PlayCustomOneShot(AudioClip audioClip, float minTimeBetweenSounds)
+        {
+            if (Time.time - LastPlayTime < minTimeBetweenSounds) return;
+
+            PlaySFX(audioClip, 1.0f, 0.85f, 1.05f);
+            LastPlayTime = Time.time;
+        }
+
+        // ==========================================
+        // UI SOUNDS
+        // ==========================================
         public void PlayUIOnClickSound()
         {
-            UISource.volume = Random.Range(MinOnClick, MaxOnClick);
-            UISource.pitch = Random.Range(0.95f, 1.05f);
-            UISource.PlayOneShot(OnClickClip);
+            UISource.PlayOneShot(OnClickClip, Random.Range(MinOnClick, MaxOnClick));
         }
 
         public void PlayUIOnHoverSound()
         {
-            UISource.volume = Random.Range(MinOnHover, MaxOnHover);
-            UISource.pitch = Random.Range(0.95f, 1.05f);
-            UISource.PlayOneShot(OnHoverClip);
+            UISource.PlayOneShot(OnHoverClip, Random.Range(MinOnHover, MaxOnHover));
+        }
+
+        public void PlayUIOnUpgradeSound()
+        {
+            UISource.PlayOneShot(OnUpgradeClip, Random.Range(MinOnHover, MaxOnHover));
         }
 
         public void PlayUIOnValueChangedSound()
         {
-            UISource.volume = Random.Range(MinOnChange, MaxOnChange);
-            UISource.pitch = Random.Range(0.95f, 1.05f);
-            UISource.PlayOneShot(OnValueChangedClip);
+            UISource.PlayOneShot(OnValueChangedClip, Random.Range(MinOnChange, MaxOnChange));
         }
 
+        // ==========================================
+        // UTILITIES
+        // ==========================================
         public IEnumerator FadeOutAndStop(AudioSource source, float duration)
         {
             float startVolume = source.volume;
             float timeElapsed = 0f;
 
-            // Gradually reduce the volume
             while (timeElapsed < duration)
             {
                 timeElapsed += Time.deltaTime;
@@ -123,26 +297,11 @@ namespace Sobia.Utils
 
             source.volume = 0f;
             source.Stop();
-
-            //start at startvolume next time
             source.volume = startVolume;
-        }
-
-        public void PlayCustomOneShot(AudioClip audioClip, float minTimeBetweenSounds)
-        {
-            if (Time.time - LastPlayTime < minTimeBetweenSounds) return;
-
-            SFXSource.pitch = Random.Range(0.85f, 1.05f);
-
-            SFXSource.PlayOneShot(audioClip);
-
-            LastPlayTime = Time.time;
         }
 
         private void CheckReferences()
         {
-            SobiaUtils.IsAssigned(SFXSource, nameof(SFXSource), gameObject);
-            SobiaUtils.IsAssigned(CollectSFXSource, nameof(CollectSFXSource), gameObject);
             SobiaUtils.IsAssigned(BackgroundSource, nameof(BackgroundSource), gameObject);
             SobiaUtils.IsAssigned(UISource, nameof(UISource), gameObject);
             SobiaUtils.IsAssigned(OnValueChangedClip, nameof(OnValueChangedClip), gameObject);

@@ -109,6 +109,26 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnCollectCoinPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnCollectCoinCooldown = 0.2f;
 
+        [Header("OnHideObjectUI")]
+        [SerializeField] private AudioClip OnHideObjectUIClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnHideObjectUIVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnHideObjectUIPitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnHideObjectUIPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnHideObjectUICooldown = 0.2f;
+
+        [Header("OnShowObjectUI")]
+        [SerializeField] private AudioClip OnShowObjectUIClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnShowObjectUIVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnShowObjectUIPitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnShowObjectUIPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnShowObjectUICooldown = 0.2f;
+
         private Dictionary<AudioClip, float> lastPlayTimes = new Dictionary<AudioClip, float>();
         public static AudioManager Instance { get; private set; }
 
@@ -270,6 +290,16 @@ namespace Sobia.Utils
         public void PlayUIOnValueChangedSound()
         {
             UISource.PlayOneShot(OnValueChangedClip, Random.Range(MinOnChange, MaxOnChange));
+        }
+
+        public void PlayUIOnHideObjectUISound()
+        {
+            UISource.PlayOneShot(OnHideObjectUIClip, OnHideObjectUIVolume);
+        }
+
+        public void PlayUIOnShowObjectUISound()
+        {
+            UISource.PlayOneShot(OnShowObjectUIClip, OnShowObjectUIVolume);
         }
 
         // ==========================================

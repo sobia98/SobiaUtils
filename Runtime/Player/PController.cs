@@ -20,7 +20,7 @@ namespace Sobia.Utils
 
         [SerializeField] private float SpeedChangeRate = 10.0f;
 
-        [SerializeField] private AudioClip[] FootstepAudioClips;
+        [SerializeField] private AudioClip FootstepAudioClips;
         [Range(0, 1)][SerializeField] private float FootstepAudioVolume = 0.5f;
 
         [Space(10)]
@@ -100,8 +100,34 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnLandPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnLandCooldown = 0.2f;
 
-        public float WalkPitch = 1.0f;
-        public float SprintPitch = 1.3f;
+        [Header("Footstep Audio Settings")]
+        [SerializeField] private AudioSource FootstepAudioSource;
+
+        [SerializeField] private AudioClip WalkingClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float MaxFootstepVolume = 1.0f;
+
+        [Range(0f, 5f)]
+        [SerializeField] private float FadeInSpeed = 2.0f; // Slider from 0 to 5
+
+        [Range(0f, 5f)]
+        [SerializeField] private float FadeOutSpeed = 4.0f; // Slider from 0 to 5
+
+        [Header("Pitch & Speed Settings")]
+        [Tooltip("Base speed/pitch when walking.")]
+        [Range(0.1f, 3f)]
+        [SerializeField] private float WalkPitch = 1.0f;
+
+        [Tooltip("Speed/pitch when sprinting.")]
+        [Range(0.1f, 3f)]
+        [SerializeField] private float SprintPitch = 2.0f;
+
+        [Tooltip("How fast the pitch transitions between walking and sprinting.")]
+        [Range(1f, 30f)]
+        [SerializeField] private float PitchTransitionSpeed = 10.0f;
+
+        private bool _wasGrounded;
 
         private bool IsCurrentDeviceMouse
         {
@@ -152,6 +178,8 @@ namespace Sobia.Utils
 
             JumpTimeoutDelta = JumpTimeout;
             FallTimeoutDelta = FallTimeout;
+
+            Animator.fireEvents = false; // to stop sending animation events
         }
 
         private void Update()
@@ -246,7 +274,26 @@ namespace Sobia.Utils
             Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
             Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, combinedGroundMask, QueryTriggerInteraction.Ignore);
 
+            // LANDED TRIGGER: Grounded just became true, but wasn't last frame
+            if (Grounded && !_wasGrounded)
+            {
+                PlayLandAudio();
+            }
+
+            _wasGrounded = Grounded; // Store state for next frame
+
             if (HasAnimator) Animator.SetBool(AnimIDGrounded, Grounded);
+        }
+
+        private void PlayLandAudio()
+        {
+            if (OnLandClips == null || OnLandClips.Length == 0 || JumpAndLandAudioSource == null) return;
+
+            JumpAndLandAudioSource.pitch = Random.Range(MinOnLandPitch, MaxOnLandPitch);
+            if (!JumpAndLandAudioSource.isPlaying)
+            {
+                JumpAndLandAudioSource.PlayOneShot(OnLandClips[Random.Range(0, OnLandClips.Length)], OnLandVolume);
+            }
         }
 
         private void Move()
@@ -295,6 +342,56 @@ namespace Sobia.Utils
                 Animator.SetFloat(AnimIDSpeed, AnimationBlend);
                 Animator.SetFloat(AnimIDMotionSpeed, Input.AnalogMovement ? Input.Move.magnitude : 1f);
             }
+
+            HandleFootstepAudio();
+        }
+
+        private void HandleFootstepAudio()
+        {
+            if (FootstepAudioSource == null || WalkingClip == null) return;
+
+            // Determine if the player should be making movement sounds
+            bool isMovingOnGround = Grounded && Input.Move != Vector2.zero;
+
+            // Target volume is Max Volume if moving on ground, 0 if idle/airborne
+            float targetVolume = isMovingOnGround ? MaxFootstepVolume : 0.0f;
+
+            // 1. Ensure clip is assigned and set to loop
+            if (FootstepAudioSource.clip != WalkingClip)
+            {
+                FootstepAudioSource.clip = WalkingClip;
+                FootstepAudioSource.loop = true;
+            }
+
+            // 2. Start playing at a RANDOM timestamp when starting movement
+            if (isMovingOnGround && !FootstepAudioSource.isPlaying)
+            {
+                // Pick a random starting time within the audio clip
+                FootstepAudioSource.time = Random.Range(0f, WalkingClip.length);
+                FootstepAudioSource.Play();
+            }
+
+            // 3. Handle Walking vs. Sprinting Pitch
+            float targetPitch = Input.Sprint ? SprintPitch : WalkPitch;
+            FootstepAudioSource.pitch = Mathf.Lerp(
+                FootstepAudioSource.pitch,
+                targetPitch,
+                Time.deltaTime * PitchTransitionSpeed
+            );
+
+            // 4. Smoothly transition volume
+            float currentFadeSpeed = isMovingOnGround ? FadeInSpeed : FadeOutSpeed;
+            FootstepAudioSource.volume = Mathf.MoveTowards(
+                FootstepAudioSource.volume,
+                targetVolume,
+                currentFadeSpeed * Time.deltaTime
+            );
+
+            // 5. Stop playback once fully faded out
+            if (FootstepAudioSource.volume <= 0.001f && FootstepAudioSource.isPlaying)
+            {
+                FootstepAudioSource.Stop();
+            }
         }
 
         private void AssignAnimationIDs()
@@ -328,17 +425,10 @@ namespace Sobia.Utils
             return Mathf.Clamp(lfAngle, lfMin, lfMax);
         }
 
-        private void OnFootstep(AnimationEvent animationEvent)
-        {
-            if (animationEvent.animatorClipInfo.weight > 0.5f)
-            {
-                if (FootstepAudioClips.Length > 0)
-                {
-                    var index = Random.Range(0, FootstepAudioClips.Length);
-                    AudioSource.PlayClipAtPoint(FootstepAudioClips[index], transform.TransformPoint(Controller.center), FootstepAudioVolume);
-                }
-            }
-        }
+        //private void OnFootstep(AnimationEvent animationEvent)
+        //{
+        //    AudioSource.PlayClipAtPoint(FootstepAudioClips, transform.TransformPoint(Controller.center), FootstepAudioVolume);
+        //}
 
         private void OnLand(AnimationEvent animationEvent)
         {

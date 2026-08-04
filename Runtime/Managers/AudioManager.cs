@@ -15,30 +15,38 @@ namespace Sobia.Utils
         [SerializeField] private AudioMixerGroup UIMixerGroup;
         [SerializeField] private AudioMixerGroup MusicMixerGroup;
 
-        [Header("Sound Tuning")]
-        [SerializeField] private float MinOnHover = 0.2f;
-
-        [SerializeField] private float MaxOnHover = 0.45f;
-        [SerializeField] private float MinOnClick = 0.5f;
-        [SerializeField] private float MaxOnClick = 0.75f;
-        [SerializeField] private float MinOnChange = 0.4f;
-        [SerializeField] private float MaxOnChange = 0.65f;
-
-        [Header("Core Audio Channels")]
+        [Space(10)]
+        [Header("Background Music")]
         [SerializeField] private AudioSource BackgroundSource;
 
+        [SerializeField] private List<AudioClip> BackgroundList;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float BackgroundVolume = 0.5f;
+
+        private int CurrentTrackIndex;
+
+        [Space(10)]
+        [Header("UI Sound Tuning")]
+        [Range(0f, 1f)][SerializeField] private float MinOnHover = 0.2f;
+
+        [Range(0f, 1f)][SerializeField] private float MaxOnHover = 0.45f;
+        [Range(0f, 1f)][SerializeField] private float MinOnClick = 0.5f;
+        [Range(0f, 1f)][SerializeField] private float MaxOnClick = 0.75f;
+        [Range(0f, 1f)][SerializeField] private float MinOnChange = 0.4f;
+        [Range(0f, 1f)][SerializeField] private float MaxOnChange = 0.65f;
+        [Range(0f, 1f)][SerializeField] private float MinOnUpgrade = 0.45f;
+        [Range(0f, 1f)][SerializeField] private float MaxOnUpgrade = 0.65f;
+
+        [Space(10)]
+        [Header("Audio Source Pooling")]
         [SerializeField] private AudioSource UISource;
 
-        [Header("Audio Source Pooling")]
         [SerializeField] private int PoolSize = 10;
 
         private List<AudioSource> sfxPool = new List<AudioSource>();
 
-        [Header("Background Music")]
-        [SerializeField] private List<AudioClip> BackgroundList;
-
-        private int CurrentTrackIndex;
-
+        [Space(10)]
         [Header("UI Sounds")]
         [SerializeField] private AudioClip OnValueChangedClip;
 
@@ -46,8 +54,6 @@ namespace Sobia.Utils
         [SerializeField] private AudioClip OnHoverClip;
         [SerializeField] private AudioClip OnSurfaceCompleted;
         [SerializeField] private AudioClip OnUpgradeClip;
-
-        private float LastPlayTime;
 
         [Header("OnCompletionObject")]
         [SerializeField] private AudioClip OnCompleitionObjectClip;
@@ -247,6 +253,7 @@ namespace Sobia.Utils
         // ==========================================
         // BACKGROUND MUSIC
         // ==========================================
+        [ContextMenu("Play Next Track")]
         private void PlayNextTrack()
         {
             CurrentTrackIndex = (CurrentTrackIndex + 1) % BackgroundList.Count;
@@ -255,9 +262,19 @@ namespace Sobia.Utils
 
         private void PlayTrack(int index)
         {
+            BackgroundSource.volume = BackgroundVolume;
             BackgroundSource.clip = BackgroundList[index];
             BackgroundSource.Play();
             Invoke(nameof(PlayNextTrack), BackgroundList[index].length);
+        }
+
+        private void OnValidate()
+        {
+            // Instantly update the playing background source volume when slider changes in Inspector
+            if (BackgroundSource != null)
+            {
+            }
+            BackgroundSource.volume = BackgroundVolume;
         }
 
         // ==========================================

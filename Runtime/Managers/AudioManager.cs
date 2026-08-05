@@ -277,7 +277,6 @@ namespace Sobia.Utils
             AudioSource source = GetAvailableSFXSource();
             source.pitch = Random.Range(minPitch, maxPitch);
             source.PlayOneShot(clip, volume);
-            Debug.Log($"Playing SFX: {clip.name} at volume {volume} and pitch {source.pitch}");
         }
 
         // ==========================================

@@ -129,6 +129,8 @@ namespace Sobia.Utils
 
         private bool _wasGrounded;
 
+        public float CurrentSpeed => Speed;
+
         private bool IsCurrentDeviceMouse
         {
             get

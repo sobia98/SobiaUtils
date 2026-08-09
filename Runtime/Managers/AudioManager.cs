@@ -155,6 +155,16 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnCollectCoinPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnCollectCoinCooldown = 0.2f;
 
+        [Header("OnEmission")]
+        [SerializeField] private AudioClip OnEmissionClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnEmissionVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnEmissionPitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnEmissionPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnEmissionCooldown = 0.2f;
+
         private Dictionary<AudioClip, float> lastPlayTimes = new Dictionary<AudioClip, float>();
         public static AudioManager Instance { get; private set; }
 
@@ -258,6 +268,11 @@ namespace Sobia.Utils
         public void PlayHideObjectUI()
         {
             PlaySFX(OnHideObjectUIClip, OnHideObjectUIVolume, MinOnHideObjectUIPitch, MaxOnHideObjectUIPitch, OnHideObjectUICooldown);
+        }
+
+        public void PlayEmissionSound()
+        {
+            PlaySFX(OnEmissionClip, OnEmissionVolume, MinOnEmissionPitch, MaxOnEmissionPitch, OnEmissionCooldown);
         }
 
         // Helper to play any gameplay sound with custom pitch/volume without clashing

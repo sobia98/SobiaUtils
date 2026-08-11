@@ -1,11 +1,13 @@
 namespace Sobia.CrackingEggs
 {
+    using Sobia.Utils;
     using UnityEngine;
 
     public class MainMenuPanel : MonoBehaviour
     {
         private void Start()
         {
+            AudioManager.Instance.PlayUIOnOpenGameSound();
             SessionManager.Instance.PrevGameState = SessionManager.Instance.CurrentGameState;
             SessionManager.Instance.TransitionTo(GameState.NONE);
         }
@@ -54,6 +56,7 @@ namespace Sobia.CrackingEggs
         public void ExitPressed()
         {
             Debug.Log("Game Exited");
+            AudioManager.Instance.PlayUIOnExitGame();
             Application.Quit();
         }
     }

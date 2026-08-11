@@ -37,6 +37,68 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnClickPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnClickCooldown = 0.1f;
 
+        [Header("OnStartGame")]
+        [SerializeField] private AudioClip OnStartGameClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnStartGameVolume = 0.6f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnStartGamePitch = 0.95f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnStartGamePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnStartGameCooldown = 0.1f;
+
+        [Header("OnBackMainMenu")]
+        [SerializeField] private AudioClip OnBackMainMenuClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnBackMainMenuVolume = 0.6f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnBackMainMenuPitch = 0.95f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnBackMainMenuPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnBackMainMenuCooldown = 0.1f;
+
+        [Header("OnPauseGame")]
+        [SerializeField] private AudioClip OnPauseGameClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnPauseGameVolume = 0.6f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnPauseGamePitch = 0.95f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnPauseGamePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnPauseGameCooldown = 0.1f;
+
+        [Header("OnOpenGame")]
+        [SerializeField] private AudioClip OnOpenGameClip;
+
+        [SerializeField] private AudioClip OnOpenGameClip2;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnOpenGameVolume = 0.6f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnOpenGamePitch = 0.95f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnOpenGamePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnOpenGameCooldown = 0.1f;
+
+        [Header("OnExitGame")]
+        [SerializeField] private AudioClip OnExitGameClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnExitGameVolume = 0.6f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnExitGamePitch = 0.95f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnExitGamePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnExitGameCooldown = 0.1f;
+
+        [Header("OnTabOpen")]
+        [SerializeField] private AudioClip OnTabOpenClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnTabOpenVolume = 0.6f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnTabOpenPitch = 0.95f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnTabOpenPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnTabOpenCooldown = 0.1f;
+
         [Header("OnHoverUI")]
         [SerializeField] private AudioClip OnHoverClip;
 
@@ -358,6 +420,56 @@ namespace Sobia.Utils
             if (OnClickClip == null || UISource == null) return;
             UISource.pitch = Random.Range(MinOnClickPitch, MaxOnClickPitch);
             UISource.PlayOneShot(OnClickClip, OnClickVolume);
+        }
+
+        public void PlayUIOnOpenGameSound()
+        {
+            if (OnOpenGameClip == null || OnOpenGameClip2 == null || UISource == null) return;
+            UISource.pitch = Random.Range(MinOnOpenGamePitch, MaxOnOpenGamePitch);
+            bool playFirstClip = Random.value > 0.5f;
+            if (playFirstClip)
+            {
+                UISource.PlayOneShot(OnOpenGameClip, OnOpenGameVolume);
+            }
+            else
+            {
+                UISource.PlayOneShot(OnOpenGameClip2, OnOpenGameVolume);
+            }
+        }
+
+        public void PlayUIOnStartGameSound()
+        {
+            if (OnStartGameClip == null || UISource == null) return;
+            UISource.pitch = Random.Range(MinOnStartGamePitch, MaxOnStartGamePitch);
+            UISource.PlayOneShot(OnStartGameClip, OnStartGameVolume);
+        }
+
+        public void PlayUIOnBackMainMenuSound()
+        {
+            if (OnBackMainMenuClip == null || UISource == null) return;
+            UISource.pitch = Random.Range(MinOnBackMainMenuPitch, MaxOnBackMainMenuPitch);
+            UISource.PlayOneShot(OnBackMainMenuClip, OnBackMainMenuVolume);
+        }
+
+        public void PlayUIOnPauseGame()
+        {
+            if (OnPauseGameClip == null || UISource == null) return;
+            UISource.pitch = Random.Range(MinOnPauseGamePitch, MaxOnPauseGamePitch);
+            UISource.PlayOneShot(OnPauseGameClip, OnPauseGameVolume);
+        }
+
+        public void PlayUIOnExitGame()
+        {
+            if (OnExitGameClip == null || UISource == null) return;
+            UISource.pitch = Random.Range(MinOnExitGamePitch, MaxOnExitGamePitch);
+            UISource.PlayOneShot(OnExitGameClip, OnExitGameVolume);
+        }
+
+        public void PlayUIOnTabOpenSound()
+        {
+            if (OnTabOpenClip == null || UISource == null) return;
+            UISource.pitch = Random.Range(MinOnTabOpenPitch, MaxOnTabOpenPitch);
+            UISource.PlayOneShot(OnTabOpenClip, OnTabOpenVolume);
         }
 
         public void PlayUIOnHoverSound()

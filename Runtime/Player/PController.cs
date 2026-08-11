@@ -20,9 +20,6 @@ namespace Sobia.Utils
 
         [SerializeField] private float SpeedChangeRate = 10.0f;
 
-        [SerializeField] private AudioClip FootstepAudioClips;
-        [Range(0, 1)][SerializeField] private float FootstepAudioVolume = 0.5f;
-
         [Space(10)]
         [Header("Jumping")]
         [SerializeField] private float JumpHeight = 1.2f;
@@ -426,11 +423,6 @@ namespace Sobia.Utils
             if (lfAngle > 360f) lfAngle -= 360f;
             return Mathf.Clamp(lfAngle, lfMin, lfMax);
         }
-
-        //private void OnFootstep(AnimationEvent animationEvent)
-        //{
-        //    AudioSource.PlayClipAtPoint(FootstepAudioClips, transform.TransformPoint(Controller.center), FootstepAudioVolume);
-        //}
 
         private void OnLand(AnimationEvent animationEvent)
         {

@@ -7,6 +7,7 @@ namespace Sobia.CrackingEggs
     {
         private void Start()
         {
+            Debug.Log("MainMenuPanel Start");
             AudioManager.Instance.PlayUIOnOpenGameSound();
             SessionManager.Instance.PrevGameState = SessionManager.Instance.CurrentGameState;
             SessionManager.Instance.TransitionTo(GameState.NONE);
@@ -56,7 +57,6 @@ namespace Sobia.CrackingEggs
         public void ExitPressed()
         {
             Debug.Log("Game Exited");
-            AudioManager.Instance.PlayUIOnExitGame();
             Application.Quit();
         }
     }

@@ -425,15 +425,15 @@ namespace Sobia.Utils
         public void PlayUIOnOpenGameSound()
         {
             if (OnOpenGameClip == null || OnOpenGameClip2 == null || UISource == null) return;
-            UISource.pitch = Random.Range(MinOnOpenGamePitch, MaxOnOpenGamePitch);
+            float randomPitch = Random.Range(MinOnOpenGamePitch, MaxOnOpenGamePitch);
             bool playFirstClip = Random.value > 0.5f;
             if (playFirstClip)
             {
-                UISource.PlayOneShot(OnOpenGameClip, OnOpenGameVolume);
+                PlayClipWithPitch(OnOpenGameClip, Camera.main.transform.position, OnExitGameVolume, randomPitch);
             }
             else
             {
-                UISource.PlayOneShot(OnOpenGameClip2, OnOpenGameVolume);
+                PlayClipWithPitch(OnOpenGameClip2, Camera.main.transform.position, OnExitGameVolume, randomPitch);
             }
         }
 
@@ -460,9 +460,30 @@ namespace Sobia.Utils
 
         public void PlayUIOnExitGame()
         {
-            if (OnExitGameClip == null || UISource == null) return;
-            UISource.pitch = Random.Range(MinOnExitGamePitch, MaxOnExitGamePitch);
-            UISource.PlayOneShot(OnExitGameClip, OnExitGameVolume);
+            if (OnExitGameClip == null) return;
+
+            // 1. Calculate random pitch
+            float randomPitch = Random.Range(MinOnExitGamePitch, MaxOnExitGamePitch);
+
+            // 2. Play clip via a temporary GameObject at the main camera position
+            PlayClipWithPitch(OnExitGameClip, Camera.main.transform.position, OnExitGameVolume, randomPitch);
+        }
+
+        private void PlayClipWithPitch(AudioClip clip, Vector3 position, float volume, float pitch)
+        {
+            GameObject tempGO = new GameObject("TempAudio");
+            tempGO.transform.position = position;
+
+            AudioSource aSource = tempGO.AddComponent<AudioSource>();
+            aSource.clip = clip;
+            aSource.volume = volume;
+            aSource.pitch = pitch;
+            aSource.spatialBlend = 0f; // 2D sound for UI
+
+            aSource.Play();
+
+            // Automatically destroy after the clip finishes
+            Destroy(tempGO, clip.length / Mathf.Max(0.1f, pitch));
         }
 
         public void PlayUIOnTabOpenSound()

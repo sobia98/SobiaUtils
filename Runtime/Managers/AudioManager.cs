@@ -360,9 +360,18 @@ namespace Sobia.Utils
         // BACKGROUND MUSIC
         // ==========================================
         [ContextMenu("Play Next Track")]
-        private void PlayNextTrack()
+        public void PlayNextTrack()
         {
             CurrentTrackIndex = (CurrentTrackIndex + 1) % BackgroundList.Count;
+            PlayTrack(CurrentTrackIndex);
+        }
+
+        [ContextMenu("Play Previous Track")]
+        public void PlayPreviousTrack()
+        {
+            if (BackgroundList == null || BackgroundList.Count == 0) return;
+
+            CurrentTrackIndex = (CurrentTrackIndex - 1 + BackgroundList.Count) % BackgroundList.Count;
             PlayTrack(CurrentTrackIndex);
         }
 

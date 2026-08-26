@@ -239,7 +239,6 @@ namespace Sobia.Utils
             }
 
             Instance = this;
-            DontDestroyOnLoad(gameObject);
 
             InitializePool();
 

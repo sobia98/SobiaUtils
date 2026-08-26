@@ -32,7 +32,6 @@ namespace Sobia.LaserProject
             }
 
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
     }
 }

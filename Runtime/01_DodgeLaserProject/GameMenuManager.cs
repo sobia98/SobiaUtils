@@ -27,7 +27,6 @@ namespace Sobia.LaserProject
             else
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
 
             SobiaUtils.IsAssigned(PauseMenuUI, nameof(PauseMenuUI), gameObject);

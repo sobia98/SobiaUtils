@@ -24,7 +24,6 @@ namespace Sobia.LaserProject
             else
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
 
             ActivePlayerTimes = new NetworkList<PlayerData>();

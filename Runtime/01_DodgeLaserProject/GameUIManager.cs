@@ -41,7 +41,6 @@ namespace Sobia.LaserProject
             else
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
 
             SobiaUtils.IsAssigned(HighRecordText, nameof(HighRecordText), gameObject);

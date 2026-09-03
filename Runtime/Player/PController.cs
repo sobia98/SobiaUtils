@@ -31,8 +31,8 @@ namespace Sobia.Utils
         [Header("Player Grounded")]
         public bool Grounded { get; private set; } = true;
 
-        public float GroundedOffset { get; private set; } = -0.14f;
-        public float GroundedRadius { get; private set; } = 0.28f;
+        [SerializeField] private float GroundedOffset = -0.14f;
+        [SerializeField] private float GroundedRadius = 0.28f;
         [SerializeField] private LayerMask GroundLayers;
         [SerializeField] private LayerMask PaintableLayer;
 
@@ -270,16 +270,24 @@ namespace Sobia.Utils
         {
             LayerMask combinedGroundMask = GroundLayers | PaintableLayer;
 
-            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, combinedGroundMask, QueryTriggerInteraction.Ignore);
+            // Dynamically calculate the bottom center of the CharacterController
+            Vector3 spherePosition = new Vector3(
+                transform.position.x,
+                transform.position.y - GroundedOffset,
+                transform.position.z
+            );
 
-            // LANDED TRIGGER: Grounded just became true, but wasn't last frame
+            // Use a ground check radius proportional to your controller radius
+            float checkRadius = (Controller != null) ? Mathf.Max(GroundedRadius, Controller.radius * 0.9f) : GroundedRadius;
+
+            Grounded = Physics.CheckSphere(spherePosition, checkRadius, combinedGroundMask, QueryTriggerInteraction.Ignore);
+
             if (Grounded && !_wasGrounded)
             {
                 PlayLandAudio();
             }
 
-            _wasGrounded = Grounded; // Store state for next frame
+            _wasGrounded = Grounded;
 
             if (HasAnimator) Animator.SetBool(AnimIDGrounded, Grounded);
         }

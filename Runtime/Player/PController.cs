@@ -2,6 +2,8 @@ using UnityEngine;
 using Unity.Cinemachine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using Sobia.SigmaboyProject;
+using UnityEngine.XR;
 
 namespace Sobia.Utils
 {
@@ -56,6 +58,8 @@ namespace Sobia.Utils
         private float TerminalVelocity = 53.0f;
         private float JumpTimeoutDelta;
         private float FallTimeoutDelta;
+
+        private bool isSprintingActive = false;
 
         // animation IDs
         private int AnimIDSpeed;
@@ -158,11 +162,33 @@ namespace Sobia.Utils
         private void OnEnable() // Replaced OnNetworkSpawn
         {
             GameEvents.OnTogglePause += HandlePause;
+            GameEvents.OnPlayerMovementSpeedChanged += HandlePlayerMovementSpeedChanged;
+            GameEvents.OnJumpCooldownChanged += HandleJumpCooldownChanged;
+            GameEvents.OnSprintingChanged += HandleSprintingChanged;
         }
 
         private void OnDisable() // Replaced OnNetworkDespawn
         {
             GameEvents.OnTogglePause -= HandlePause;
+            GameEvents.OnPlayerMovementSpeedChanged -= HandlePlayerMovementSpeedChanged;
+            GameEvents.OnJumpCooldownChanged -= HandleJumpCooldownChanged;
+            GameEvents.OnSprintingChanged -= HandleSprintingChanged;
+        }
+
+        private void HandleSprintingChanged(bool isSprintingActive)
+        {
+            this.isSprintingActive = isSprintingActive;
+        }
+
+        private void HandlePlayerMovementSpeedChanged(float newSpeedMultiplier)
+        {
+            MoveSpeed *= newSpeedMultiplier;
+            SprintSpeed *= newSpeedMultiplier;
+        }
+
+        private void HandleJumpCooldownChanged(float newCooldown)
+        {
+            JumpTimeout = newCooldown;
         }
 
         private void Start()
@@ -305,13 +331,14 @@ namespace Sobia.Utils
 
         private void Move()
         {
-            // Determine the base speed we should be at
-            float targetBaseSpeed = Input.Sprint ? SprintSpeed : MoveSpeed;
+            // Sprint only occurs if both the input button is held AND sprinting is enabled/unlocked
+            bool isSprinting = Input.Sprint && isSprintingActive;
+
+            float targetBaseSpeed = isSprinting ? SprintSpeed : MoveSpeed;
             if (Input.Move == Vector2.zero) targetBaseSpeed = 0.0f;
 
-            // SPRINT TAKEOVER: If we are sprinting and our current speed is less than SprintSpeed,
-            // boost us up to the SprintSpeed immediately.
-            if (Input.Sprint && Speed < SprintSpeed && Input.Move != Vector2.zero)
+            // SPRINT TAKEOVER: If sprinting is active, boost immediately to SprintSpeed
+            if (isSprinting && Speed < SprintSpeed && Input.Move != Vector2.zero)
             {
                 Speed = SprintSpeed;
             }
@@ -319,7 +346,6 @@ namespace Sobia.Utils
             // GROUND DECAY: If we are on the ground and NOT jumping, bleed speed back to targetBaseSpeed
             if (Grounded && !Input.Jump)
             {
-                // This ensures that if we stop jumping, we eventually slow down to normal walking/running
                 Speed = Mathf.Lerp(Speed, targetBaseSpeed, Time.deltaTime * SpeedChangeRate);
             }
 
@@ -350,10 +376,10 @@ namespace Sobia.Utils
                 Animator.SetFloat(AnimIDMotionSpeed, Input.AnalogMovement ? Input.Move.magnitude : 1f);
             }
 
-            HandleFootstepAudio();
+            HandleFootstepAudio(isSprinting);
         }
 
-        private void HandleFootstepAudio()
+        private void HandleFootstepAudio(bool isSprinting)
         {
             if (FootstepAudioSource == null || WalkingClip == null) return;
 
@@ -373,13 +399,12 @@ namespace Sobia.Utils
             // 2. Start playing at a RANDOM timestamp when starting movement
             if (isMovingOnGround && !FootstepAudioSource.isPlaying)
             {
-                // Pick a random starting time within the audio clip
                 FootstepAudioSource.time = Random.Range(0f, WalkingClip.length);
                 FootstepAudioSource.Play();
             }
 
-            // 3. Handle Walking vs. Sprinting Pitch
-            float targetPitch = Input.Sprint ? SprintPitch : WalkPitch;
+            // 3. Handle Walking vs. Sprinting Pitch (respecting isSprintingActive)
+            float targetPitch = isSprinting ? SprintPitch : WalkPitch;
             FootstepAudioSource.pitch = Mathf.Lerp(
                 FootstepAudioSource.pitch,
                 targetPitch,

@@ -58,6 +58,7 @@ namespace Sobia.Utils
         private float TerminalVelocity = 53.0f;
         private float JumpTimeoutDelta;
         private float FallTimeoutDelta;
+        private bool isJumpingActive = true; // Set default (true or false depending on whether it's unlocked by default)
 
         private bool isSprintingActive = false;
 
@@ -165,6 +166,7 @@ namespace Sobia.Utils
             GameEvents.OnPlayerMovementSpeedChanged += HandlePlayerMovementSpeedChanged;
             GameEvents.OnJumpCooldownChanged += HandleJumpCooldownChanged;
             GameEvents.OnSprintingChanged += HandleSprintingChanged;
+            GameEvents.OnJumpingChanged += HandleJumpingChanged; // Added
         }
 
         private void OnDisable() // Replaced OnNetworkDespawn
@@ -173,11 +175,17 @@ namespace Sobia.Utils
             GameEvents.OnPlayerMovementSpeedChanged -= HandlePlayerMovementSpeedChanged;
             GameEvents.OnJumpCooldownChanged -= HandleJumpCooldownChanged;
             GameEvents.OnSprintingChanged -= HandleSprintingChanged;
+            GameEvents.OnJumpingChanged -= HandleJumpingChanged; // Added
         }
 
         private void HandleSprintingChanged(bool isSprintingActive)
         {
             this.isSprintingActive = isSprintingActive;
+        }
+
+        private void HandleJumpingChanged(bool isJumpingActive)
+        {
+            this.isJumpingActive = isJumpingActive;
         }
 
         private void HandlePlayerMovementSpeedChanged(float newSpeedMultiplier)
@@ -250,8 +258,10 @@ namespace Sobia.Utils
                     VerticalVelocity = -2f;
                 }
 
-                // JUMP TRIGGER
-                if (Input.Jump && JumpTimeoutDelta <= 0.0f)
+                // JUMP TRIGGER: Check Input, Cooldown, and if Jumping is unlocked
+                bool canJump = Input.Jump && isJumpingActive && JumpTimeoutDelta <= 0.0f;
+
+                if (canJump)
                 {
                     // 1. Accumulate speed on jump
                     JumpAndLandAudioSource.pitch = Random.Range(MinOnJumpPitch, MaxOnJumpPitch);

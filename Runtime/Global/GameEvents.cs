@@ -8,6 +8,7 @@ public static class GameEvents
     public static System.Action<float> OnPlayerMovementSpeedChanged;
     public static System.Action<float> OnJumpCooldownChanged;
     public static System.Action<bool> OnSprintingChanged;
+    public static System.Action<bool> OnJumpingChanged;
 
     public static void TriggerTogglePause(bool isPaused)
     {
@@ -47,5 +48,10 @@ public static class GameEvents
     public static void TriggerSprintingChanged(bool isSprinting)
     {
         OnSprintingChanged?.Invoke(isSprinting);
+    }
+
+    public static void TriggerJumpChanged(bool isJumping)
+    {
+        OnJumpingChanged?.Invoke(isJumping);
     }
 }

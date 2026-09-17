@@ -24,11 +24,6 @@ namespace Sobia.Utils
             SetCursorState(CursorLocked);
         }
 
-        private void OnApplicationFocus(bool hasFocus)
-        {
-            SetCursorState(CursorLocked);
-        }
-
         public void MoveInput(Vector2 newMoveDirection)
         {
             Move = newMoveDirection;

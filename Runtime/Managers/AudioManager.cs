@@ -24,6 +24,8 @@ namespace Sobia.Utils
         [Range(0f, 1f)]
         [SerializeField] private float BackgroundVolume = 0.5f;
 
+        [SerializeField] private float fadeDuration = 1.5f;
+
         private int CurrentTrackIndex;
         private Coroutine musicCoroutine;
 
@@ -361,6 +363,8 @@ namespace Sobia.Utils
         [ContextMenu("Play Next Track")]
         public void PlayNextTrack()
         {
+            if (BackgroundList == null || BackgroundList.Count == 0) return;
+
             CurrentTrackIndex = (CurrentTrackIndex + 1) % BackgroundList.Count;
             PlayTrack(CurrentTrackIndex);
         }
@@ -376,18 +380,56 @@ namespace Sobia.Utils
 
         private void PlayTrack(int index)
         {
-            // Stop any existing music timer coroutine
             if (musicCoroutine != null)
             {
                 StopCoroutine(musicCoroutine);
             }
 
-            BackgroundSource.volume = BackgroundVolume;
-            BackgroundSource.clip = BackgroundList[index];
+            musicCoroutine = StartCoroutine(CrossfadeTrackRoutine(index));
+        }
+
+        private IEnumerator CrossfadeTrackRoutine(int index)
+        {
+            AudioClip clip = BackgroundList[index];
+
+            // If already playing something, fade out the current track first
+            if (BackgroundSource.isPlaying && BackgroundSource.volume > 0f)
+            {
+                yield return StartCoroutine(FadeSource(BackgroundSource, BackgroundSource.volume, 0f, fadeDuration));
+            }
+
+            // Assign and start playing at zero volume
+            BackgroundSource.clip = clip;
+            BackgroundSource.volume = 0f;
             BackgroundSource.Play();
 
-            // Start a coroutine to wait until the track ends
-            musicCoroutine = StartCoroutine(WaitAndPlayNextTrack(BackgroundList[index].length));
+            // Fade In
+            yield return StartCoroutine(FadeSource(BackgroundSource, 0f, BackgroundVolume, fadeDuration));
+
+            // Calculate how long to play at full volume before needing to fade out
+            // Mathf.Max protects against tracks shorter than total fade duration
+            float sustainTime = Mathf.Max(0f, clip.length - (fadeDuration * 2f));
+            yield return new WaitForSeconds(sustainTime);
+
+            // Fade Out
+            yield return StartCoroutine(FadeSource(BackgroundSource, BackgroundVolume, 0f, fadeDuration));
+
+            // Move to the next track
+            PlayNextTrack(); // Or call your next-track selection logic here
+        }
+
+        private IEnumerator FadeSource(AudioSource source, float startVol, float targetVol, float duration)
+        {
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                source.volume = Mathf.Lerp(startVol, targetVol, elapsed / duration);
+                yield return null;
+            }
+
+            source.volume = targetVol;
         }
 
         private IEnumerator WaitAndPlayNextTrack(float trackLength)

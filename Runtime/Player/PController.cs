@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using Sobia.SigmaboyProject;
 using UnityEngine.XR;
+using UnityEngine.UI;
 
 namespace Sobia.Utils
 {
@@ -29,6 +30,7 @@ namespace Sobia.Utils
         [SerializeField] private float Gravity = -15.0f;
         [SerializeField] private float JumpTimeout = 0.50f;
         [SerializeField] private float FallTimeout = 0.15f;
+        [SerializeField] private Image JumpCooldownImage;
 
         [Header("Player Grounded")]
         public bool Grounded { get; private set; } = true;
@@ -300,6 +302,28 @@ namespace Sobia.Utils
             {
                 VerticalVelocity += Gravity * Time.deltaTime;
             }
+
+            UpdateJumpCooldownUI();
+        }
+
+        private void UpdateJumpCooldownUI()
+        {
+            if (JumpCooldownImage == null) return;
+
+            if (JumpTimeout <= 0f)
+            {
+                JumpCooldownImage.fillAmount = 1f;
+                return;
+            }
+
+            // 1f = Bereit zum Springen (Cooldown abgelaufen), 0f = gerade gesprungen
+            float progress = 1f - Mathf.Clamp01(JumpTimeoutDelta / JumpTimeout);
+            JumpCooldownImage.fillAmount = progress;
+        }
+
+        public void SetCooldownImage(Image image)
+        {
+            JumpCooldownImage = image;
         }
 
         private void GroundedCheck()

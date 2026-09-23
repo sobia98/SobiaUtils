@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Sobia.SigmaboyProject;
 using UnityEngine.XR;
 using UnityEngine.UI;
+using Sobia.LaserProject;
 
 namespace Sobia.Utils
 {
@@ -15,7 +16,10 @@ namespace Sobia.Utils
         [SerializeField] private bool ThirdPerson = true;
 
         [SerializeField] private float MoveSpeed = 2.0f;
+        [SerializeField] private float MoveBaseSpeed = 2.0f;
         [SerializeField] private float SprintSpeed = 5.335f;
+        [SerializeField] private float SprintBaseSpeed = 5.335f;
+        [SerializeField] private float SpeedMultiplayer = 1f;
 
         [Tooltip("The lower the faster")]
         [Range(0.0f, 0.3f)]
@@ -192,8 +196,9 @@ namespace Sobia.Utils
 
         private void HandlePlayerMovementSpeedChanged(float newSpeedMultiplier)
         {
-            MoveSpeed *= newSpeedMultiplier;
-            SprintSpeed *= newSpeedMultiplier;
+            SpeedMultiplayer = newSpeedMultiplier;
+            MoveSpeed = SpeedMultiplayer * MoveBaseSpeed;
+            SprintSpeed = SpeedMultiplayer * SprintBaseSpeed;
         }
 
         private void HandleJumpCooldownChanged(float newCooldown)

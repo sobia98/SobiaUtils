@@ -121,6 +121,16 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnUpgradePitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnUpgradeCooldown = 0.1f;
 
+        [Header("OnUpgradeDenialUI")]
+        [SerializeField] private AudioClip OnUpgradeDenialClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnUpgradeDenialVolume = 0.6f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnUpgradeDenialPitch = 0.95f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnUpgradeDenialPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnUpgradeDenialCooldown = 0.1f;
+
         [Header("OnValueChangedUI")]
         [SerializeField] private AudioClip OnValueChangedClip;
 
@@ -229,6 +239,19 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnEmissionPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnEmissionCooldown = 0.2f;
 
+        [Header("Demo Finished Special Handling")]
+        private Coroutine demoFinishedCoroutine;
+
+        private AudioSource demoAudioSource;
+        [SerializeField] private AudioClip OnDemoFinishedClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnDemoFinishedVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnDemoFinishedPitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnDemoFinishedPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnDemoFinishedCooldown = 0.2f;
+
         private Dictionary<AudioClip, float> lastPlayTimes = new Dictionary<AudioClip, float>();
         public static AudioManager Instance { get; private set; }
 
@@ -336,6 +359,76 @@ namespace Sobia.Utils
         public void PlayEmissionSound()
         {
             PlaySFX(OnEmissionClip, OnEmissionVolume, MinOnEmissionPitch, MaxOnEmissionPitch, OnEmissionCooldown);
+        }
+
+        public void PlayOnDemoFinishedSound()
+        {
+            if (OnDemoFinishedClip == null) return;
+
+            if (demoFinishedCoroutine != null)
+            {
+                StopCoroutine(demoFinishedCoroutine);
+            }
+
+            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine());
+        }
+
+        private IEnumerator PlayDemoFinishedRoutine()
+        {
+            // 1. Ensure a dedicated AudioSource exists that won't be muted
+            if (demoAudioSource == null)
+            {
+                GameObject demoSourceObj = new GameObject("DemoFinished_AudioSource");
+                demoSourceObj.transform.SetParent(transform);
+                demoAudioSource = demoSourceObj.AddComponent<AudioSource>();
+                demoAudioSource.playOnAwake = false;
+                // If you have a Master or UI mixer group you don't mute, route it here:
+                if (UIMixerGroup != null) demoAudioSource.outputAudioMixerGroup = UIMixerGroup;
+            }
+
+            // 2. Mute all active audio sources
+            SetAllOtherSourcesMute(true);
+
+            // 3. Configure and play the demo finished clip
+            float pitch = Random.Range(MinOnDemoFinishedPitch, MaxOnDemoFinishedPitch);
+            demoAudioSource.pitch = pitch;
+            demoAudioSource.volume = OnDemoFinishedVolume;
+            demoAudioSource.clip = OnDemoFinishedClip;
+            demoAudioSource.Play();
+
+            // 4. Wait for duration taking pitch and unscaled time into account
+            // (Using unscaledTime prevents game freezes/pauses from hanging the audio)
+            float playbackDuration = OnDemoFinishedClip.length / Mathf.Max(0.01f, Mathf.Abs(pitch));
+            yield return new WaitForSecondsRealtime(playbackDuration);
+
+            // 5. Restore mute state
+            SetAllOtherSourcesMute(false);
+
+            demoFinishedCoroutine = null;
+        }
+
+        private void SetAllOtherSourcesMute(bool isMuted)
+        {
+            // Mute / Unmute Background Music
+            if (BackgroundSource != null)
+            {
+                BackgroundSource.mute = isMuted;
+            }
+
+            // Mute / Unmute UI Source
+            if (UISource != null)
+            {
+                UISource.mute = isMuted;
+            }
+
+            // Mute / Unmute all pooled SFX sources
+            for (int i = 0; i < sfxPool.Count; i++)
+            {
+                if (sfxPool[i] != null)
+                {
+                    sfxPool[i].mute = isMuted;
+                }
+            }
         }
 
         // Helper to play any gameplay sound with custom pitch/volume without clashing
@@ -555,6 +648,13 @@ namespace Sobia.Utils
             if (OnUpgradeClip == null || UISource == null) return;
             UISource.pitch = Random.Range(MinOnUpgradePitch, MaxOnUpgradePitch);
             UISource.PlayOneShot(OnUpgradeClip, OnUpgradeVolume);
+        }
+
+        public void PlayUIOnUpgradeDenialSound()
+        {
+            if (OnUpgradeDenialClip == null || UISource == null) return;
+            UISource.pitch = Random.Range(MinOnUpgradeDenialPitch, MaxOnUpgradeDenialPitch);
+            UISource.PlayOneShot(OnUpgradeDenialClip, OnUpgradeDenialVolume);
         }
 
         public void PlayUIOnValueChangedSound()

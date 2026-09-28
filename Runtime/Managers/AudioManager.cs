@@ -631,7 +631,7 @@ namespace Sobia.Utils
 
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 source.volume = Mathf.Lerp(startVol, targetVol, elapsed / duration);
                 yield return null;
             }
@@ -788,7 +788,7 @@ namespace Sobia.Utils
 
             while (timeElapsed < duration)
             {
-                timeElapsed += Time.deltaTime;
+                timeElapsed += Time.unscaledDeltaTime;
                 source.volume = Mathf.Lerp(startVolume, 0f, timeElapsed / duration);
                 yield return null;
             }

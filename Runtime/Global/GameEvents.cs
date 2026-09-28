@@ -3,7 +3,7 @@ public static class GameEvents
     public static System.Action<bool> OnTogglePause;
     public static System.Action<bool> OnToggleTab;
     public static System.Action OnFOVChanged;
-    public static System.Action<int, string> OnObjectPaintingCompleted;
+    public static System.Action<int, string, bool> OnObjectPaintingCompleted;
     public static System.Action<int> OnCurrentMoneyChanged;
     public static System.Action<int> OnCurrentEnergyChanged;
     public static System.Action<float> OnPlayerMovementSpeedChanged;
@@ -26,9 +26,9 @@ public static class GameEvents
         OnToggleTab?.Invoke(isTabOpen);
     }
 
-    public static void TriggerObjectPaintingCompleted(int cashReward, string rewardStatID)
+    public static void TriggerObjectPaintingCompleted(int cashReward, string rewardStatID, bool isLoading)
     {
-        OnObjectPaintingCompleted?.Invoke(cashReward, rewardStatID);
+        OnObjectPaintingCompleted?.Invoke(cashReward, rewardStatID, isLoading);
     }
 
     public static void TriggerCurrentMoneyChanged(int newAmount)

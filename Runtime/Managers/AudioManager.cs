@@ -15,6 +15,13 @@ namespace Sobia.Utils
         [SerializeField] private AudioMixerGroup UIMixerGroup;
         [SerializeField] private AudioMixerGroup MusicMixerGroup;
 
+        [Range(0f, 1f)]
+        [SerializeField] private float DuckMultiplier = 0.2f; // Lowers volume to 20% while a
+
+        private bool isDucked = false;
+
+        private readonly Dictionary<AudioSource, float> originalSourceVolumes = new Dictionary<AudioSource, float>();
+
         [Space(10)]
         [Header("Background Music")]
         [SerializeField] private AudioSource BackgroundSource;
@@ -259,10 +266,11 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnUpgradeAvailablePitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnOnUpgradeAvailableCooldown = 0.2f;
 
-        [Header("Demo Finished Special Handling")]
         private Coroutine demoFinishedCoroutine;
 
         private AudioSource demoAudioSource;
+
+        [Header("Demo Finished")]
         [SerializeField] private AudioClip OnDemoFinishedClip;
 
         [Range(0f, 1f)]
@@ -381,108 +389,108 @@ namespace Sobia.Utils
             PlaySFX(OnEmissionClip, OnEmissionVolume, MinOnEmissionPitch, MaxOnEmissionPitch, OnEmissionCooldown);
         }
 
-        public void PlayUpgradeAvailableSound()
+        private void TriggerSpecialSound(AudioClip clip, float minPitch, float maxPitch, float volume)
         {
-            if (OnUpgradeAvailableClips == null || OnUpgradeAvailableClips.Length == 0) return;
-
-            int randomIndex = Random.Range(0, OnUpgradeAvailableClips.Length);
-            AudioClip selectedClip = OnUpgradeAvailableClips[randomIndex];
-
-            if (selectedClip == null) return;
+            if (clip == null) return;
 
             if (demoFinishedCoroutine != null)
             {
                 StopCoroutine(demoFinishedCoroutine);
             }
 
-            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(selectedClip, MinOnUpgradeAvailablePitch, MaxOnUpgradeAvailablePitch, OnUpgradeAvailableVolume));
+            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(clip, minPitch, maxPitch, volume));
+        }
+
+        public void PlayUpgradeAvailableSound()
+        {
+            if (OnUpgradeAvailableClips == null || OnUpgradeAvailableClips.Length == 0) return;
+            AudioClip selectedClip = OnUpgradeAvailableClips[Random.Range(0, OnUpgradeAvailableClips.Length)];
+            TriggerSpecialSound(selectedClip, MinOnUpgradeAvailablePitch, MaxOnUpgradeAvailablePitch, OnUpgradeAvailableVolume);
         }
 
         public void PlayUnlockStatSound()
         {
             if (OnUnlockStatClips == null || OnUnlockStatClips.Length == 0) return;
-
-            int randomIndex = Random.Range(0, OnUnlockStatClips.Length);
-            AudioClip selectedClip = OnUnlockStatClips[randomIndex];
-
-            if (selectedClip == null) return;
-
-            if (demoFinishedCoroutine != null)
-            {
-                StopCoroutine(demoFinishedCoroutine);
-            }
-
-            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(selectedClip, MinOnUnlockStatPitch, MaxOnUnlockStatPitch, OnUnlockStatVolume));
+            AudioClip selectedClip = OnUnlockStatClips[Random.Range(0, OnUnlockStatClips.Length)];
+            TriggerSpecialSound(selectedClip, MinOnUnlockStatPitch, MaxOnUnlockStatPitch, OnUnlockStatVolume);
         }
 
         public void PlayOnDemoFinishedSound()
         {
-            if (OnDemoFinishedClip == null) return;
-
-            if (demoFinishedCoroutine != null)
-            {
-                StopCoroutine(demoFinishedCoroutine);
-            }
-
-            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(OnDemoFinishedClip, MinOnDemoFinishedPitch, MaxOnDemoFinishedPitch, OnDemoFinishedVolume));
+            TriggerSpecialSound(OnDemoFinishedClip, MinOnDemoFinishedPitch, MaxOnDemoFinishedPitch, OnDemoFinishedVolume);
         }
 
-        private IEnumerator PlayDemoFinishedRoutine(AudioClip audioClip, float minpitch, float maxpitch, float clipvolune)
+        private IEnumerator PlayDemoFinishedRoutine(AudioClip audioClip, float minpitch, float maxpitch, float clipvolume)
         {
-            // 1. Ensure a dedicated AudioSource exists that won't be muted
+            if (audioClip == null) yield break;
+
             if (demoAudioSource == null)
             {
                 GameObject demoSourceObj = new GameObject("DemoFinished_AudioSource");
                 demoSourceObj.transform.SetParent(transform);
                 demoAudioSource = demoSourceObj.AddComponent<AudioSource>();
                 demoAudioSource.playOnAwake = false;
-                // If you have a Master or UI mixer group you don't mute, route it here:
                 if (UIMixerGroup != null) demoAudioSource.outputAudioMixerGroup = UIMixerGroup;
             }
 
-            // 2. Mute all active audio sources
-            SetAllOtherSourcesMute(true);
+            SetAllOtherSourcesDucked(true);
 
-            // 3. Configure and play the demo finished clip
             float pitch = Random.Range(minpitch, maxpitch);
             demoAudioSource.pitch = pitch;
-            demoAudioSource.volume = clipvolune;
+            demoAudioSource.volume = clipvolume;
             demoAudioSource.clip = audioClip;
             demoAudioSource.Play();
 
-            // 4. Wait for duration taking pitch and unscaled time into account
-            // (Using unscaledTime prevents game freezes/pauses from hanging the audio)
             float playbackDuration = audioClip.length / Mathf.Max(0.01f, Mathf.Abs(pitch));
             yield return new WaitForSecondsRealtime(playbackDuration);
 
-            // 5. Restore mute state
-            SetAllOtherSourcesMute(false);
-
+            SetAllOtherSourcesDucked(false);
             demoFinishedCoroutine = null;
         }
 
-        private void SetAllOtherSourcesMute(bool isMuted)
+        private void SetAllOtherSourcesDucked(bool duck)
         {
-            // Mute / Unmute Background Music
-            if (BackgroundSource != null)
+            if (duck)
             {
-                BackgroundSource.mute = isMuted;
-            }
-
-            // Mute / Unmute UI Source
-            if (UISource != null)
-            {
-                UISource.mute = isMuted;
-            }
-
-            // Mute / Unmute all pooled SFX sources
-            for (int i = 0; i < sfxPool.Count; i++)
-            {
-                if (sfxPool[i] != null)
+                // Only capture base volumes if we aren't ALREADY ducked
+                if (!isDucked)
                 {
-                    sfxPool[i].mute = isMuted;
+                    originalSourceVolumes.Clear();
+
+                    DuckSingleSource(BackgroundSource);
+                    DuckSingleSource(UISource);
+
+                    for (int i = 0; i < sfxPool.Count; i++)
+                    {
+                        DuckSingleSource(sfxPool[i]);
+                    }
+
+                    isDucked = true;
                 }
             }
+            else
+            {
+                // Restore each registered source back to its pre-duck volume
+                foreach (var kvp in originalSourceVolumes)
+                {
+                    if (kvp.Key != null)
+                    {
+                        kvp.Key.volume = kvp.Value;
+                    }
+                }
+
+                originalSourceVolumes.Clear();
+                isDucked = false;
+            }
+        }
+
+        private void DuckSingleSource(AudioSource source)
+        {
+            if (source == null) return;
+
+            // Store true baseline volume before ducking
+            originalSourceVolumes[source] = source.volume;
+            source.volume *= DuckMultiplier;
         }
 
         // Helper to play any gameplay sound with custom pitch/volume without clashing

@@ -239,6 +239,16 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnEmissionPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnEmissionCooldown = 0.2f;
 
+        [Header("OnUnlockStat")]
+        [SerializeField] private AudioClip[] OnUnlockStatClips;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnUnlockStatVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnUnlockStatPitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnUnlockStatPitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnUnlockStatCooldown = 0.2f;
+
         [Header("Demo Finished Special Handling")]
         private Coroutine demoFinishedCoroutine;
 
@@ -361,6 +371,23 @@ namespace Sobia.Utils
             PlaySFX(OnEmissionClip, OnEmissionVolume, MinOnEmissionPitch, MaxOnEmissionPitch, OnEmissionCooldown);
         }
 
+        public void PlayUnlockStatSound()
+        {
+            if (OnUnlockStatClips == null || OnUnlockStatClips.Length == 0) return;
+
+            int randomIndex = Random.Range(0, OnUnlockStatClips.Length);
+            AudioClip selectedClip = OnUnlockStatClips[randomIndex];
+
+            if (selectedClip == null) return;
+
+            if (demoFinishedCoroutine != null)
+            {
+                StopCoroutine(demoFinishedCoroutine);
+            }
+
+            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(selectedClip));
+        }
+
         public void PlayOnDemoFinishedSound()
         {
             if (OnDemoFinishedClip == null) return;
@@ -370,10 +397,10 @@ namespace Sobia.Utils
                 StopCoroutine(demoFinishedCoroutine);
             }
 
-            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine());
+            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(OnDemoFinishedClip));
         }
 
-        private IEnumerator PlayDemoFinishedRoutine()
+        private IEnumerator PlayDemoFinishedRoutine(AudioClip audioClip)
         {
             // 1. Ensure a dedicated AudioSource exists that won't be muted
             if (demoAudioSource == null)
@@ -393,12 +420,12 @@ namespace Sobia.Utils
             float pitch = Random.Range(MinOnDemoFinishedPitch, MaxOnDemoFinishedPitch);
             demoAudioSource.pitch = pitch;
             demoAudioSource.volume = OnDemoFinishedVolume;
-            demoAudioSource.clip = OnDemoFinishedClip;
+            demoAudioSource.clip = audioClip;
             demoAudioSource.Play();
 
             // 4. Wait for duration taking pitch and unscaled time into account
             // (Using unscaledTime prevents game freezes/pauses from hanging the audio)
-            float playbackDuration = OnDemoFinishedClip.length / Mathf.Max(0.01f, Mathf.Abs(pitch));
+            float playbackDuration = audioClip.length / Mathf.Max(0.01f, Mathf.Abs(pitch));
             yield return new WaitForSecondsRealtime(playbackDuration);
 
             // 5. Restore mute state

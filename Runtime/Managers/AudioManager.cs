@@ -266,6 +266,27 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnUpgradeAvailablePitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnOnUpgradeAvailableCooldown = 0.2f;
 
+        [Header("OnHoldDelete")]
+        [SerializeField] private AudioClip OnHoldDeleteClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnHoldDeleteVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnHoldDeletePitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnHoldDeletePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnOnHoldDeleteCooldown = 0.2f;
+        private AudioSource HoldDeleteAudioSource;
+
+        [Header("OnAfterDelete")]
+        [SerializeField] private AudioClip OnAfterDeleteClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnAfterDeleteVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnAfterDeletePitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnAfterDeletePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnOnAfterDeleteCooldown = 0.2f;
+
         private Coroutine demoFinishedCoroutine;
 
         private AudioSource demoAudioSource;
@@ -387,6 +408,37 @@ namespace Sobia.Utils
         public void PlayEmissionSound()
         {
             PlaySFX(OnEmissionClip, OnEmissionVolume, MinOnEmissionPitch, MaxOnEmissionPitch, OnEmissionCooldown);
+        }
+
+        public void PlayOnAfterDeleteSound()
+        {
+            PlaySFX(OnAfterDeleteClip, OnAfterDeleteVolume, MinOnAfterDeletePitch, MaxOnAfterDeletePitch, OnOnAfterDeleteCooldown);
+        }
+
+        public void StartDeleteHoldSound()
+        {
+            if (HoldDeleteAudioSource == null)
+            {
+                GameObject holdObj = new GameObject("Hold_AudioSource");
+                holdObj.transform.SetParent(transform);
+                HoldDeleteAudioSource = holdObj.AddComponent<AudioSource>();
+                HoldDeleteAudioSource.playOnAwake = false;
+                if (UIMixerGroup != null) HoldDeleteAudioSource.outputAudioMixerGroup = UIMixerGroup;
+            }
+
+            HoldDeleteAudioSource.clip = OnHoldDeleteClip;
+            HoldDeleteAudioSource.volume = OnHoldDeleteVolume;
+            HoldDeleteAudioSource.pitch = Random.Range(MinOnHoldDeletePitch, MaxOnHoldDeletePitch);
+            HoldDeleteAudioSource.time = 0f;
+            HoldDeleteAudioSource.Play();
+        }
+
+        public void StopDeleteHoldSound()
+        {
+            if (HoldDeleteAudioSource != null && HoldDeleteAudioSource.isPlaying)
+            {
+                HoldDeleteAudioSource.Stop(); // Resets playhead back to 0
+            }
         }
 
         private void TriggerSpecialSound(AudioClip clip, float minPitch, float maxPitch, float volume)

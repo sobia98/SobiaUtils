@@ -447,7 +447,7 @@ namespace Sobia.Utils
             FootstepAudioSource.pitch = Mathf.Lerp(
                 FootstepAudioSource.pitch,
                 targetPitch,
-                Time.deltaTime * PitchTransitionSpeed
+                Time.unscaledDeltaTime * PitchTransitionSpeed
             );
 
             // 4. Smoothly transition volume
@@ -455,7 +455,7 @@ namespace Sobia.Utils
             FootstepAudioSource.volume = Mathf.MoveTowards(
                 FootstepAudioSource.volume,
                 targetVolume,
-                currentFadeSpeed * Time.deltaTime
+                currentFadeSpeed * Time.unscaledDeltaTime
             );
 
             // 5. Stop playback once fully faded out

@@ -249,6 +249,16 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MaxOnUnlockStatPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnUnlockStatCooldown = 0.2f;
 
+        [Header("OnUpgradeAvailable")]
+        [SerializeField] private AudioClip[] OnUpgradeAvailableClips;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnUpgradeAvailableVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnUpgradeAvailablePitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnUpgradeAvailablePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnOnUpgradeAvailableCooldown = 0.2f;
+
         [Header("Demo Finished Special Handling")]
         private Coroutine demoFinishedCoroutine;
 
@@ -371,6 +381,23 @@ namespace Sobia.Utils
             PlaySFX(OnEmissionClip, OnEmissionVolume, MinOnEmissionPitch, MaxOnEmissionPitch, OnEmissionCooldown);
         }
 
+        public void PlayUpgradeAvailableSound()
+        {
+            if (OnUpgradeAvailableClips == null || OnUpgradeAvailableClips.Length == 0) return;
+
+            int randomIndex = Random.Range(0, OnUpgradeAvailableClips.Length);
+            AudioClip selectedClip = OnUpgradeAvailableClips[randomIndex];
+
+            if (selectedClip == null) return;
+
+            if (demoFinishedCoroutine != null)
+            {
+                StopCoroutine(demoFinishedCoroutine);
+            }
+
+            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(selectedClip, MinOnUpgradeAvailablePitch, MaxOnUpgradeAvailablePitch, OnUpgradeAvailableVolume));
+        }
+
         public void PlayUnlockStatSound()
         {
             if (OnUnlockStatClips == null || OnUnlockStatClips.Length == 0) return;
@@ -385,7 +412,7 @@ namespace Sobia.Utils
                 StopCoroutine(demoFinishedCoroutine);
             }
 
-            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(selectedClip));
+            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(selectedClip, MinOnUnlockStatPitch, MaxOnUnlockStatPitch, OnUnlockStatVolume));
         }
 
         public void PlayOnDemoFinishedSound()
@@ -397,10 +424,10 @@ namespace Sobia.Utils
                 StopCoroutine(demoFinishedCoroutine);
             }
 
-            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(OnDemoFinishedClip));
+            demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(OnDemoFinishedClip, MinOnDemoFinishedPitch, MaxOnDemoFinishedPitch, OnDemoFinishedVolume));
         }
 
-        private IEnumerator PlayDemoFinishedRoutine(AudioClip audioClip)
+        private IEnumerator PlayDemoFinishedRoutine(AudioClip audioClip, float minpitch, float maxpitch, float clipvolune)
         {
             // 1. Ensure a dedicated AudioSource exists that won't be muted
             if (demoAudioSource == null)
@@ -417,9 +444,9 @@ namespace Sobia.Utils
             SetAllOtherSourcesMute(true);
 
             // 3. Configure and play the demo finished clip
-            float pitch = Random.Range(MinOnDemoFinishedPitch, MaxOnDemoFinishedPitch);
+            float pitch = Random.Range(minpitch, maxpitch);
             demoAudioSource.pitch = pitch;
-            demoAudioSource.volume = OnDemoFinishedVolume;
+            demoAudioSource.volume = clipvolune;
             demoAudioSource.clip = audioClip;
             demoAudioSource.Play();
 

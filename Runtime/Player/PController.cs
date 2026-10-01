@@ -15,6 +15,9 @@ namespace Sobia.Utils
         [Header("Player")]
         [SerializeField] private bool ThirdPerson = true;
 
+        [SerializeField] private float Speed;
+        [SerializeField] private float CapMoveSpeed = 35.0f;
+        [SerializeField] private float BonusBunnyhopMoveSpeed = 0.5f;
         [SerializeField] private float MoveSpeed = 2.0f;
         [SerializeField] private float MoveBaseSpeed = 2.0f;
         [SerializeField] private float SprintSpeed = 5.335f;
@@ -56,7 +59,6 @@ namespace Sobia.Utils
         private float CinemachineTargetYaw;
 
         private float CinemachineTargetPitch;
-        private float Speed;
         private float AnimationBlend;
         private float TargetRotation = 0.0f;
         private float RotationVelocity;
@@ -270,16 +272,18 @@ namespace Sobia.Utils
 
                 if (canJump)
                 {
-                    // 1. Accumulate speed on jump
                     JumpAndLandAudioSource.pitch = Random.Range(MinOnJumpPitch, MaxOnJumpPitch);
                     if (!JumpAndLandAudioSource.isPlaying)
                     {
                         JumpAndLandAudioSource.PlayOneShot(OnJumpClips[Random.Range(0, OnJumpClips.Length)], OnJumpVolume);
                     }
-                    Speed += 0.5f;
 
-                    // 2. Cap the speed at 35
-                    if (Speed > 35.0f) Speed = 35.0f;
+                    // FIX: Only accumulate bunnyhop speed if the player is actively moving
+                    if (Input.Move != Vector2.zero)
+                    {
+                        Speed += BonusBunnyhopMoveSpeed;
+                        if (Speed > CapMoveSpeed) Speed = CapMoveSpeed;
+                    }
 
                     VerticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
                     if (HasAnimator) Animator.SetBool(AnimIDJump, true);
@@ -382,8 +386,9 @@ namespace Sobia.Utils
                 Speed = SprintSpeed;
             }
 
-            // GROUND DECAY: If we are on the ground and NOT jumping, bleed speed back to targetBaseSpeed
-            if (Grounded && !Input.Jump)
+            // FIX: Decay speed if grounded AND (not holding jump OR not giving movement input)
+            // If Input.Move is zero, targetBaseSpeed is 0, so speed decays to 0 even if holding Jump
+            if (Grounded && (!Input.Jump || Input.Move == Vector2.zero))
             {
                 Speed = Mathf.Lerp(Speed, targetBaseSpeed, Time.deltaTime * SpeedChangeRate);
             }

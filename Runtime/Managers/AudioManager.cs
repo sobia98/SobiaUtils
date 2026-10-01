@@ -616,7 +616,7 @@ namespace Sobia.Utils
             // Calculate how long to play at full volume before needing to fade out
             // Mathf.Max protects against tracks shorter than total fade duration
             float sustainTime = Mathf.Max(0f, clip.length - (fadeDuration * 2f));
-            yield return new WaitForSeconds(sustainTime);
+            yield return new WaitForSecondsRealtime(sustainTime);
 
             // Fade Out
             yield return StartCoroutine(FadeSource(BackgroundSource, BackgroundVolume, 0f, fadeDuration));

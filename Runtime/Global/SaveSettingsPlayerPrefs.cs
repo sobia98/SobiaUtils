@@ -12,7 +12,7 @@ namespace Sobia.Utils
 
         public static float LoadMasterVolume()
         {
-            return PlayerPrefs.GetFloat("MasterVolume", 0.2f);
+            return PlayerPrefs.GetFloat("MasterVolume", 0.65f);
         }
 
         public static void SaveSFXVolume(float volume)
@@ -22,7 +22,7 @@ namespace Sobia.Utils
 
         public static float LoadSFXVolume()
         {
-            return PlayerPrefs.GetFloat("SFXVolume", 0.35f);
+            return PlayerPrefs.GetFloat("SFXVolume", 2.0f);
         }
 
         public static void SaveMusicVolume(float volume)
@@ -32,7 +32,7 @@ namespace Sobia.Utils
 
         public static float LoadMusicVolume()
         {
-            return PlayerPrefs.GetFloat("MusicVolume", 0.25f);
+            return PlayerPrefs.GetFloat("MusicVolume", 0.5f);
         }
 
         public static void SaveUIVolume(float volume)
@@ -42,7 +42,7 @@ namespace Sobia.Utils
 
         public static float LoadUIVolume()
         {
-            return PlayerPrefs.GetFloat("UIVolume", 0.3f);
+            return PlayerPrefs.GetFloat("UIVolume", 0.35f);
         }
 
         //Graphics

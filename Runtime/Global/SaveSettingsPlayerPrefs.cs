@@ -157,5 +157,15 @@ namespace Sobia.Utils
         {
             return PlayerPrefs.GetFloat("Sensitivity", 1f);
         }
+
+        public static void SaveEnableAutopainting(bool enabled)
+        {
+            PlayerPrefs.SetInt("EnableAutopainting", enabled ? 1 : 0);
+        }
+
+        public static bool LoadEnableAutopainting()
+        {
+            return PlayerPrefs.GetInt("EnableAutopainting", 0) == 1;
+        }
     }
 }

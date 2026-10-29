@@ -38,6 +38,8 @@ namespace Sobia.Utils
         [SerializeField] private float JumpTimeout = 0.50f;
         [SerializeField] private float FallTimeout = 0.15f;
         [SerializeField] private Image JumpCooldownImage;
+        private Color cooldownColor = new Color(1.0f, 0.5f, 0f, 1f); // Red / recharging
+        private Color readyColor = Color.white;
 
         [Header("Player Grounded")]
         public bool Grounded { get; private set; } = true;
@@ -322,12 +324,15 @@ namespace Sobia.Utils
             if (JumpTimeout <= 0f)
             {
                 JumpCooldownImage.fillAmount = 1f;
+                JumpCooldownImage.color = readyColor;
                 return;
             }
 
             // 1f = Bereit zum Springen (Cooldown abgelaufen), 0f = gerade gesprungen
             float progress = 1f - Mathf.Clamp01(JumpTimeoutDelta / JumpTimeout);
+
             JumpCooldownImage.fillAmount = progress;
+            JumpCooldownImage.color = Color.Lerp(cooldownColor, readyColor, progress);
         }
 
         public void SetCooldownImage(Image image)

@@ -165,7 +165,7 @@ namespace Sobia.Utils
 
         public static bool LoadEnableAutopainting()
         {
-            return PlayerPrefs.GetInt("EnableAutopainting", 0) == 1;
+            return PlayerPrefs.GetInt("EnableAutopainting", 1) == 1;
         }
     }
 }

@@ -489,16 +489,17 @@ namespace Sobia.Utils
 
         public void PlayUpgradeAvailableSound()
         {
+            return;
             if (OnUpgradeAvailableClips == null || OnUpgradeAvailableClips.Length == 0) return;
             AudioClip selectedClip = OnUpgradeAvailableClips[Random.Range(0, OnUpgradeAvailableClips.Length)];
-            TriggerSpecialSound(selectedClip, MinOnUpgradeAvailablePitch, MaxOnUpgradeAvailablePitch, OnUpgradeAvailableVolume);
+            PlaySFX(selectedClip, OnUpgradeAvailableVolume, MinOnUpgradeAvailablePitch, MaxOnUpgradeAvailablePitch, OnOnUpgradeAvailableCooldown);
         }
 
         public void PlayUnlockStatSound()
         {
             if (OnUnlockStatClips == null || OnUnlockStatClips.Length == 0) return;
             AudioClip selectedClip = OnUnlockStatClips[Random.Range(0, OnUnlockStatClips.Length)];
-            TriggerSpecialSound(selectedClip, MinOnUnlockStatPitch, MaxOnUnlockStatPitch, OnUnlockStatVolume);
+            PlaySFX(selectedClip, OnUnlockStatVolume, MinOnUnlockStatPitch, MaxOnUnlockStatPitch, OnUnlockStatCooldown);
         }
 
         public void PlayOnOpeningGateSound()

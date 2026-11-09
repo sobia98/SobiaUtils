@@ -277,6 +277,16 @@ namespace Sobia.Utils
         [Range(0.05f, 1.0f)][SerializeField] private float OnOnHoldDeleteCooldown = 0.2f;
         private AudioSource HoldDeleteAudioSource;
 
+        [Header("OnOpeningGate")]
+        [SerializeField] private AudioClip OnOpeningGateClip;
+
+        [Range(0f, 1f)]
+        [SerializeField] private float OnOpeningGateVolume = 0.172f;
+
+        [Range(0.5f, 2f)][SerializeField] private float MinOnOpeningGatePitch = 0.955f;
+        [Range(0.5f, 2f)][SerializeField] private float MaxOnOpeningGatePitch = 1.05f;
+        [Range(0.05f, 1.0f)][SerializeField] private float OnOnOpeningGateCooldown = 0.2f;
+
         [Header("OnAfterDelete")]
         [SerializeField] private AudioClip OnAfterDeleteClip;
 
@@ -329,6 +339,23 @@ namespace Sobia.Utils
                 CurrentTrackIndex = Random.Range(0, BackgroundList.Count);
                 PlayTrack(CurrentTrackIndex);
             }
+        }
+
+        public void StopSpecialSound()
+        {
+            if (demoFinishedCoroutine != null)
+            {
+                StopCoroutine(demoFinishedCoroutine);
+                demoFinishedCoroutine = null;
+            }
+
+            if (demoAudioSource != null && demoAudioSource.isPlaying)
+            {
+                demoAudioSource.Stop();
+                demoAudioSource.clip = null;
+            }
+
+            SetAllOtherSourcesDucked(false);
         }
 
         // ==========================================
@@ -448,6 +475,13 @@ namespace Sobia.Utils
             if (demoFinishedCoroutine != null)
             {
                 StopCoroutine(demoFinishedCoroutine);
+                demoFinishedCoroutine = null;
+            }
+
+            // Force stop the audio source before launching the next one
+            if (demoAudioSource != null && demoAudioSource.isPlaying)
+            {
+                demoAudioSource.Stop();
             }
 
             demoFinishedCoroutine = StartCoroutine(PlayDemoFinishedRoutine(clip, minPitch, maxPitch, volume));
@@ -465,6 +499,11 @@ namespace Sobia.Utils
             if (OnUnlockStatClips == null || OnUnlockStatClips.Length == 0) return;
             AudioClip selectedClip = OnUnlockStatClips[Random.Range(0, OnUnlockStatClips.Length)];
             TriggerSpecialSound(selectedClip, MinOnUnlockStatPitch, MaxOnUnlockStatPitch, OnUnlockStatVolume);
+        }
+
+        public void PlayOnOpeningGateSound()
+        {
+            TriggerSpecialSound(OnOpeningGateClip, MinOnOpeningGatePitch, MaxOnOpeningGatePitch, OnOpeningGateVolume);
         }
 
         public void PlayOnDemoFinishedSound()

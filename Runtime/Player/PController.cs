@@ -24,6 +24,12 @@ namespace Sobia.Utils
         [SerializeField] private float SprintBaseSpeed = 5.335f;
         [SerializeField] private float SpeedMultiplayer = 1f;
 
+        [Header("Sprint Mode Settings")]
+        [SerializeField] private bool IsToggleSprintEnabled = false;
+
+        private bool isSprintToggled = false;
+        private bool wasSprintPressedLastFrame = false;
+
         [Tooltip("The lower the faster")]
         [Range(0.0f, 0.3f)]
         [SerializeField] private float RotationSmoothTime = 0.12f;
@@ -162,6 +168,8 @@ namespace Sobia.Utils
             GameEvents.OnJumpCooldownChanged += HandleJumpCooldownChanged;
             GameEvents.OnSprintingChanged += HandleSprintingChanged;
             GameEvents.OnJumpingChanged += HandleJumpingChanged;
+            GameEvents.OnToggleSprintChanged += HandleToggleSprintChanged;
+            ApplySettings();
         }
 
         private void OnDisable()
@@ -171,6 +179,21 @@ namespace Sobia.Utils
             GameEvents.OnJumpCooldownChanged -= HandleJumpCooldownChanged;
             GameEvents.OnSprintingChanged -= HandleSprintingChanged;
             GameEvents.OnJumpingChanged -= HandleJumpingChanged;
+            GameEvents.OnToggleSprintChanged -= HandleToggleSprintChanged;
+        }
+
+        private void HandleToggleSprintChanged(bool isEnabled)
+        {
+            IsToggleSprintEnabled = isEnabled;
+            if (!isEnabled)
+            {
+                isSprintToggled = false;
+            }
+        }
+
+        private void ApplySettings()
+        {
+            IsToggleSprintEnabled = SaveSettingsPlayerPrefs.LoadEnableToggleSprint();
         }
 
         private void HandleSprintingChanged(bool isSprintingActive)
@@ -361,8 +384,18 @@ namespace Sobia.Utils
 
         private void Move()
         {
-            // Sprint only occurs if both the input button is held AND sprinting is enabled/unlocked
-            bool isSprinting = Input.Sprint && isSprintingActive;
+            // --- SPRINT LOGIC (TOGGLE OR HOLD) ---
+            bool sprintKeyDownThisFrame = Input.Sprint && !wasSprintPressedLastFrame;
+            wasSprintPressedLastFrame = Input.Sprint;
+
+            // Only flip toggle state if toggle setting is enabled AND sprint is unlocked
+            if (IsToggleSprintEnabled && isSprintingActive && sprintKeyDownThisFrame)
+            {
+                isSprintToggled = !isSprintToggled;
+            }
+
+            // Determine active sprint status (only true if isSprintingActive is unlocked)
+            bool isSprinting = isSprintingActive && (IsToggleSprintEnabled ? isSprintToggled : Input.Sprint);
 
             float targetBaseSpeed = isSprinting ? SprintSpeed : MoveSpeed;
             if (Input.Move == Vector2.zero) targetBaseSpeed = 0.0f;

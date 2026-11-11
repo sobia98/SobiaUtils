@@ -1,3 +1,5 @@
+using System;
+
 public static class GameEvents
 {
     public static System.Action<bool> OnTogglePause;
@@ -10,6 +12,8 @@ public static class GameEvents
     public static System.Action<float> OnJumpCooldownChanged;
     public static System.Action<bool> OnSprintingChanged;
     public static System.Action<bool> OnJumpingChanged;
+
+    public static event Action<bool> OnToggleSprintChanged;
 
     public static void TriggerTogglePause(bool isPaused)
     {
@@ -59,5 +63,10 @@ public static class GameEvents
     public static void TriggerJumpChanged(bool isJumping)
     {
         OnJumpingChanged?.Invoke(isJumping);
+    }
+
+    public static void TriggerToggleSprintChanged(bool isEnabled)
+    {
+        OnToggleSprintChanged?.Invoke(isEnabled);
     }
 }

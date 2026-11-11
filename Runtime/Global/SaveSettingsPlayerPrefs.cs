@@ -167,5 +167,15 @@ namespace Sobia.Utils
         {
             return PlayerPrefs.GetInt("EnableAutopainting", 1) == 1;
         }
+
+        public static void SaveEnableToggleSprint(bool enabled)
+        {
+            PlayerPrefs.SetInt("EnableToggleSprint", enabled ? 1 : 0);
+        }
+
+        public static bool LoadEnableToggleSprint()
+        {
+            return PlayerPrefs.GetInt("EnableToggleSprint", 1) == 1;
+        }
     }
 }

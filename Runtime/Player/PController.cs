@@ -10,7 +10,7 @@ using Sobia.LaserProject;
 namespace Sobia.Utils
 {
     [RequireComponent(typeof(CharacterController))]
-    public class PController : MonoBehaviour // Changed from NetworkBehaviour
+    public class PController : MonoBehaviour
     {
         [Header("Player")]
         [SerializeField] private bool ThirdPerson = true;
@@ -38,7 +38,7 @@ namespace Sobia.Utils
         [SerializeField] private float JumpTimeout = 0.50f;
         [SerializeField] private float FallTimeout = 0.15f;
         [SerializeField] private Image JumpCooldownImage;
-        private Color cooldownColor = new Color(1.0f, 0.5f, 0f, 1f); // Red / recharging
+        private Color cooldownColor = new Color(1.0f, 0.5f, 0f, 1f);
         private Color readyColor = Color.white;
 
         [Header("Player Grounded")]
@@ -68,8 +68,7 @@ namespace Sobia.Utils
         private float TerminalVelocity = 53.0f;
         private float JumpTimeoutDelta;
         private float FallTimeoutDelta;
-        private bool isJumpingActive = true; // Set default (true or false depending on whether it's unlocked by default)
-
+        private bool isJumpingActive = true;
         private bool isSprintingActive = false;
 
         // animation IDs
@@ -95,9 +94,7 @@ namespace Sobia.Utils
         [Header("OnJump")]
         [SerializeField] private AudioClip[] OnJumpClips;
 
-        [Range(0f, 1f)]
-        [SerializeField] private float OnJumpVolume = 0.5f;
-
+        [Range(0f, 1f)][SerializeField] private float OnJumpVolume = 0.5f;
         [Range(0.5f, 2f)][SerializeField] private float MinOnJumpPitch = 0.9f;
         [Range(0.5f, 2f)][SerializeField] private float MaxOnJumpPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnJumpCooldown = 0.2f;
@@ -105,9 +102,7 @@ namespace Sobia.Utils
         [Header("OnLand")]
         [SerializeField] private AudioClip[] OnLandClips;
 
-        [Range(0f, 1f)]
-        [SerializeField] private float OnLandVolume = 0.5f;
-
+        [Range(0f, 1f)][SerializeField] private float OnLandVolume = 0.5f;
         [Range(0.5f, 2f)][SerializeField] private float MinOnLandPitch = 0.9f;
         [Range(0.5f, 2f)][SerializeField] private float MaxOnLandPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnLandCooldown = 0.2f;
@@ -116,28 +111,19 @@ namespace Sobia.Utils
         [SerializeField] private AudioSource FootstepAudioSource;
 
         [SerializeField] private AudioClip WalkingClip;
-
-        [Range(0f, 1f)]
-        [SerializeField] private float MaxFootstepVolume = 1.0f;
-
-        [Range(0f, 5f)]
-        [SerializeField] private float FadeInSpeed = 2.0f; // Slider from 0 to 5
-
-        [Range(0f, 5f)]
-        [SerializeField] private float FadeOutSpeed = 4.0f; // Slider from 0 to 5
+        [Range(0f, 1f)][SerializeField] private float MaxFootstepVolume = 1.0f;
+        [Range(0f, 5f)][SerializeField] private float FadeInSpeed = 2.0f;
+        [Range(0f, 5f)][SerializeField] private float FadeOutSpeed = 4.0f;
 
         [Header("Pitch & Speed Settings")]
         [Tooltip("Base speed/pitch when walking.")]
-        [Range(0.1f, 3f)]
-        [SerializeField] private float WalkPitch = 1.0f;
+        [Range(0.1f, 3f)][SerializeField] private float WalkPitch = 1.0f;
 
         [Tooltip("Speed/pitch when sprinting.")]
-        [Range(0.1f, 3f)]
-        [SerializeField] private float SprintPitch = 2.0f;
+        [Range(0.1f, 3f)][SerializeField] private float SprintPitch = 2.0f;
 
         [Tooltip("How fast the pitch transitions between walking and sprinting.")]
-        [Range(1f, 30f)]
-        [SerializeField] private float PitchTransitionSpeed = 10.0f;
+        [Range(1f, 30f)][SerializeField] private float PitchTransitionSpeed = 10.0f;
 
         private bool _wasGrounded;
 
@@ -159,38 +145,41 @@ namespace Sobia.Utils
 
         private void Awake()
         {
-            if (MainCamera == null) // Standard Unity null check
+            if (MainCamera == null)
             {
                 MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-
                 if (MainCamera == null)
                 {
-                    Debug.LogError("PController: No GameObject with 'MainCamera' tag found in the scene!"); //
+                    Debug.LogError("PController: No GameObject with 'MainCamera' tag found in the scene!");
                 }
             }
         }
 
-        private void OnEnable() // Replaced OnNetworkSpawn
+        private void OnEnable()
         {
             GameEvents.OnTogglePause += HandlePause;
             GameEvents.OnPlayerMovementSpeedChanged += HandlePlayerMovementSpeedChanged;
             GameEvents.OnJumpCooldownChanged += HandleJumpCooldownChanged;
             GameEvents.OnSprintingChanged += HandleSprintingChanged;
-            GameEvents.OnJumpingChanged += HandleJumpingChanged; // Added
+            GameEvents.OnJumpingChanged += HandleJumpingChanged;
         }
 
-        private void OnDisable() // Replaced OnNetworkDespawn
+        private void OnDisable()
         {
             GameEvents.OnTogglePause -= HandlePause;
             GameEvents.OnPlayerMovementSpeedChanged -= HandlePlayerMovementSpeedChanged;
             GameEvents.OnJumpCooldownChanged -= HandleJumpCooldownChanged;
             GameEvents.OnSprintingChanged -= HandleSprintingChanged;
-            GameEvents.OnJumpingChanged -= HandleJumpingChanged; // Added
+            GameEvents.OnJumpingChanged -= HandleJumpingChanged;
         }
 
         private void HandleSprintingChanged(bool isSprintingActive)
         {
             this.isSprintingActive = isSprintingActive;
+            if (!isSprintingActive)
+            {
+                isSprintToggled = false;
+            }
         }
 
         private void HandleJumpingChanged(bool isJumpingActive)
@@ -223,12 +212,11 @@ namespace Sobia.Utils
             JumpTimeoutDelta = JumpTimeout;
             FallTimeoutDelta = FallTimeout;
 
-            Animator.fireEvents = false; // to stop sending animation events
+            Animator.fireEvents = false;
         }
 
         private void Update()
         {
-            // Removed IsOwner check
             if (Controller == null || !Controller.enabled) return;
 
             JumpAndGravity();
@@ -238,7 +226,7 @@ namespace Sobia.Utils
 
         private void LateUpdate()
         {
-            if (IsPaused) return; // Removed IsOwner check
+            if (IsPaused) return;
             CameraRotation();
         }
 
@@ -269,7 +257,6 @@ namespace Sobia.Utils
                     VerticalVelocity = -2f;
                 }
 
-                // JUMP TRIGGER: Check Input, Cooldown, and if Jumping is unlocked
                 bool canJump = Input.Jump && isJumpingActive && JumpTimeoutDelta <= 0.0f;
 
                 if (canJump)
@@ -280,7 +267,6 @@ namespace Sobia.Utils
                         JumpAndLandAudioSource.PlayOneShot(OnJumpClips[Random.Range(0, OnJumpClips.Length)], OnJumpVolume);
                     }
 
-                    // FIX: Only accumulate bunnyhop speed if the player is actively moving
                     if (Input.Move != Vector2.zero)
                     {
                         Speed += BonusBunnyhopMoveSpeed;
@@ -328,9 +314,7 @@ namespace Sobia.Utils
                 return;
             }
 
-            // 1f = Bereit zum Springen (Cooldown abgelaufen), 0f = gerade gesprungen
             float progress = 1f - Mathf.Clamp01(JumpTimeoutDelta / JumpTimeout);
-
             JumpCooldownImage.fillAmount = progress;
             JumpCooldownImage.color = Color.Lerp(cooldownColor, readyColor, progress);
         }
@@ -344,14 +328,12 @@ namespace Sobia.Utils
         {
             LayerMask combinedGroundMask = GroundLayers | PaintableLayer;
 
-            // Dynamically calculate the bottom center of the CharacterController
             Vector3 spherePosition = new Vector3(
                 transform.position.x,
                 transform.position.y - GroundedOffset,
                 transform.position.z
             );
 
-            // Use a ground check radius proportional to your controller radius
             float checkRadius = (Controller != null) ? Mathf.Max(GroundedRadius, Controller.radius * 0.9f) : GroundedRadius;
 
             Grounded = Physics.CheckSphere(spherePosition, checkRadius, combinedGroundMask, QueryTriggerInteraction.Ignore);
@@ -385,14 +367,11 @@ namespace Sobia.Utils
             float targetBaseSpeed = isSprinting ? SprintSpeed : MoveSpeed;
             if (Input.Move == Vector2.zero) targetBaseSpeed = 0.0f;
 
-            // SPRINT TAKEOVER: If sprinting is active, boost immediately to SprintSpeed
             if (isSprinting && Speed < SprintSpeed && Input.Move != Vector2.zero)
             {
                 Speed = SprintSpeed;
             }
 
-            // FIX: Decay speed if grounded AND (not holding jump OR not giving movement input)
-            // If Input.Move is zero, targetBaseSpeed is 0, so speed decays to 0 even if holding Jump
             if (Grounded && (!Input.Jump || Input.Move == Vector2.zero))
             {
                 Speed = Mathf.Lerp(Speed, targetBaseSpeed, Time.deltaTime * SpeedChangeRate);
@@ -432,27 +411,21 @@ namespace Sobia.Utils
         {
             if (FootstepAudioSource == null || WalkingClip == null) return;
 
-            // Determine if the player should be making movement sounds
             bool isMovingOnGround = Grounded && Input.Move != Vector2.zero;
-
-            // Target volume is Max Volume if moving on ground, 0 if idle/airborne
             float targetVolume = isMovingOnGround ? MaxFootstepVolume : 0.0f;
 
-            // 1. Ensure clip is assigned and set to loop
             if (FootstepAudioSource.clip != WalkingClip)
             {
                 FootstepAudioSource.clip = WalkingClip;
                 FootstepAudioSource.loop = true;
             }
 
-            // 2. Start playing at a RANDOM timestamp when starting movement
             if (isMovingOnGround && !FootstepAudioSource.isPlaying)
             {
                 FootstepAudioSource.time = Random.Range(0f, WalkingClip.length);
                 FootstepAudioSource.Play();
             }
 
-            // 3. Handle Walking vs. Sprinting Pitch (respecting isSprintingActive)
             float targetPitch = isSprinting ? SprintPitch : WalkPitch;
             FootstepAudioSource.pitch = Mathf.Lerp(
                 FootstepAudioSource.pitch,
@@ -460,7 +433,6 @@ namespace Sobia.Utils
                 Time.unscaledDeltaTime * PitchTransitionSpeed
             );
 
-            // 4. Smoothly transition volume
             float currentFadeSpeed = isMovingOnGround ? FadeInSpeed : FadeOutSpeed;
             FootstepAudioSource.volume = Mathf.MoveTowards(
                 FootstepAudioSource.volume,
@@ -468,7 +440,6 @@ namespace Sobia.Utils
                 currentFadeSpeed * Time.unscaledDeltaTime
             );
 
-            // 5. Stop playback once fully faded out
             if (FootstepAudioSource.volume <= 0.001f && FootstepAudioSource.isPlaying)
             {
                 FootstepAudioSource.Stop();

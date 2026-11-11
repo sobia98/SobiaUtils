@@ -389,7 +389,7 @@ namespace Sobia.Utils
             wasSprintPressedLastFrame = Input.Sprint;
 
             // Only flip toggle state if toggle setting is enabled AND sprint is unlocked
-            if (IsToggleSprintEnabled && isSprintingActive && sprintKeyDownThisFrame)
+            if (IsToggleSprintEnabled && sprintKeyDownThisFrame)
             {
                 isSprintToggled = !isSprintToggled;
             }

@@ -53,7 +53,7 @@ namespace Sobia.Utils
 
         public static float LoadBrightness()
         {
-            return PlayerPrefs.GetFloat("Brightness", -1.0f);
+            return PlayerPrefs.GetFloat("Brightness", -0.9f);
         }
 
         public static void SaveFOV(float volume)

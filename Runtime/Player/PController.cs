@@ -6,6 +6,7 @@ using Sobia.SigmaboyProject;
 using UnityEngine.XR;
 using UnityEngine.UI;
 using Sobia.LaserProject;
+using System;
 
 namespace Sobia.Utils
 {
@@ -104,6 +105,9 @@ namespace Sobia.Utils
         [Range(0.5f, 2f)][SerializeField] private float MinOnJumpPitch = 0.9f;
         [Range(0.5f, 2f)][SerializeField] private float MaxOnJumpPitch = 1.05f;
         [Range(0.05f, 1.0f)][SerializeField] private float OnJumpCooldown = 0.2f;
+        private bool wasJumpPressed = false;
+
+        public static event Action JumpOnCooldownRN;
 
         [Header("OnLand")]
         [SerializeField] private AudioClip[] OnLandClips;
@@ -265,6 +269,11 @@ namespace Sobia.Utils
 
         private void JumpAndGravity()
         {
+            // Detect the exact frame the jump button was pressed down
+            bool jumpJustPressed = Input.Jump && !wasJumpPressed;
+            wasJumpPressed = Input.Jump;
+            bool canJump = Input.Jump && isJumpingActive && JumpTimeoutDelta <= 0.0f;
+
             if (Grounded)
             {
                 FallTimeoutDelta = FallTimeout;
@@ -280,14 +289,12 @@ namespace Sobia.Utils
                     VerticalVelocity = -2f;
                 }
 
-                bool canJump = Input.Jump && isJumpingActive && JumpTimeoutDelta <= 0.0f;
-
                 if (canJump)
                 {
-                    JumpAndLandAudioSource.pitch = Random.Range(MinOnJumpPitch, MaxOnJumpPitch);
+                    JumpAndLandAudioSource.pitch = UnityEngine.Random.Range(MinOnJumpPitch, MaxOnJumpPitch);
                     if (!JumpAndLandAudioSource.isPlaying)
                     {
-                        JumpAndLandAudioSource.PlayOneShot(OnJumpClips[Random.Range(0, OnJumpClips.Length)], OnJumpVolume);
+                        JumpAndLandAudioSource.PlayOneShot(OnJumpClips[UnityEngine.Random.Range(0, OnJumpClips.Length)], OnJumpVolume);
                     }
 
                     if (Input.Move != Vector2.zero)
@@ -299,6 +306,11 @@ namespace Sobia.Utils
                     VerticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
                     if (HasAnimator) Animator.SetBool(AnimIDJump, true);
                 }
+                else if (jumpJustPressed && (!isJumpingActive || JumpTimeoutDelta > 0.0f))
+                {
+                    // Player pressed jump while on cooldown (or while jumping is locked)
+                    JumpOnCooldownRN?.Invoke();
+                }
 
                 if (JumpTimeoutDelta >= 0.0f)
                 {
@@ -307,6 +319,12 @@ namespace Sobia.Utils
             }
             else
             {
+                // Optional: Also play the denial sound if the player presses jump mid-air
+                if (jumpJustPressed && !canJump)
+                {
+                    JumpOnCooldownRN?.Invoke();
+                }
+
                 JumpTimeoutDelta = JumpTimeout;
                 if (FallTimeoutDelta >= 0.0f)
                 {
@@ -375,10 +393,10 @@ namespace Sobia.Utils
         {
             if (OnLandClips == null || OnLandClips.Length == 0 || JumpAndLandAudioSource == null) return;
 
-            JumpAndLandAudioSource.pitch = Random.Range(MinOnLandPitch, MaxOnLandPitch);
+            JumpAndLandAudioSource.pitch = UnityEngine.Random.Range(MinOnLandPitch, MaxOnLandPitch);
             if (!JumpAndLandAudioSource.isPlaying)
             {
-                JumpAndLandAudioSource.PlayOneShot(OnLandClips[Random.Range(0, OnLandClips.Length)], OnLandVolume);
+                JumpAndLandAudioSource.PlayOneShot(OnLandClips[UnityEngine.Random.Range(0, OnLandClips.Length)], OnLandVolume);
             }
         }
 
@@ -455,7 +473,7 @@ namespace Sobia.Utils
 
             if (isMovingOnGround && !FootstepAudioSource.isPlaying)
             {
-                FootstepAudioSource.time = Random.Range(0f, WalkingClip.length);
+                FootstepAudioSource.time = UnityEngine.Random.Range(0f, WalkingClip.length);
                 FootstepAudioSource.Play();
             }
 
@@ -512,10 +530,10 @@ namespace Sobia.Utils
 
         private void OnLand(AnimationEvent animationEvent)
         {
-            JumpAndLandAudioSource.pitch = Random.Range(MinOnLandPitch, MaxOnLandPitch);
+            JumpAndLandAudioSource.pitch = UnityEngine.Random.Range(MinOnLandPitch, MaxOnLandPitch);
             if (!JumpAndLandAudioSource.isPlaying)
             {
-                JumpAndLandAudioSource.PlayOneShot(OnLandClips[Random.Range(0, OnLandClips.Length)], OnLandVolume);
+                JumpAndLandAudioSource.PlayOneShot(OnLandClips[UnityEngine.Random.Range(0, OnLandClips.Length)], OnLandVolume);
             }
         }
     }

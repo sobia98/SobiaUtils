@@ -29,6 +29,9 @@ namespace Sobia.Utils
         [SerializeField] private bool IsToggleSprintEnabled = false;
 
         private bool isSprintToggled = false;
+
+        public static event Action<bool> OnSprintingToggledChanged;
+
         private bool wasSprintPressedLastFrame = false;
 
         [Tooltip("The lower the faster")]
@@ -193,6 +196,7 @@ namespace Sobia.Utils
             {
                 isSprintToggled = false;
             }
+            OnSprintingToggledChanged?.Invoke(isSprintToggled);
         }
 
         private void ApplySettings()
@@ -291,6 +295,9 @@ namespace Sobia.Utils
 
                 if (canJump)
                 {
+                    // Start the cooldown immediately upon jumping
+                    JumpTimeoutDelta = JumpTimeout;
+
                     JumpAndLandAudioSource.pitch = UnityEngine.Random.Range(MinOnJumpPitch, MaxOnJumpPitch);
                     if (!JumpAndLandAudioSource.isPlaying)
                     {
@@ -309,23 +316,22 @@ namespace Sobia.Utils
                 else if (jumpJustPressed && (!isJumpingActive || JumpTimeoutDelta > 0.0f))
                 {
                     // Player pressed jump while on cooldown (or while jumping is locked)
-                    JumpOnCooldownRN?.Invoke();
-                }
-
-                if (JumpTimeoutDelta >= 0.0f)
-                {
-                    JumpTimeoutDelta -= Time.deltaTime;
+                    if (isJumpingActive)
+                    {
+                        JumpOnCooldownRN?.Invoke();
+                    }
                 }
             }
             else
             {
-                // Optional: Also play the denial sound if the player presses jump mid-air
-                if (jumpJustPressed && !canJump)
+                // Play the denial feedback if the player presses jump mid-air
+                if (jumpJustPressed && !canJump && isJumpingActive)
                 {
                     JumpOnCooldownRN?.Invoke();
                 }
 
-                JumpTimeoutDelta = JumpTimeout;
+                // Removed "JumpTimeoutDelta = JumpTimeout;" so the timer isn't frozen while airborne
+
                 if (FallTimeoutDelta >= 0.0f)
                 {
                     FallTimeoutDelta -= Time.deltaTime;
@@ -334,6 +340,12 @@ namespace Sobia.Utils
                 {
                     if (HasAnimator) Animator.SetBool(AnimIDFreeFall, true);
                 }
+            }
+
+            // Count down the jump cooldown continuously (both in the air and on the ground)
+            if (JumpTimeoutDelta > 0.0f)
+            {
+                JumpTimeoutDelta -= Time.deltaTime;
             }
 
             if (VerticalVelocity < TerminalVelocity)
@@ -410,6 +422,7 @@ namespace Sobia.Utils
             if (IsToggleSprintEnabled && sprintKeyDownThisFrame)
             {
                 isSprintToggled = !isSprintToggled;
+                OnSprintingToggledChanged?.Invoke(isSprintToggled);
             }
 
             // Determine active sprint status (only true if isSprintingActive is unlocked)
